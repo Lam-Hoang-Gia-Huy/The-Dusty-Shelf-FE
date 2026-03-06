@@ -41,17 +41,7 @@ const UserDetail = () => {
         const userResponse = await axios.get(
           `http://localhost:8080/api/v1/user/${id}`
         );
-        const productsResponse = await axios.get(
-          `http://localhost:8080/api/v1/product/user/${id}`
-        );
-        const feedbackResponse = await axios.get(
-          `http://localhost:8080/api/v1/feedback/user/${id}`
-        );
         setUserData(userResponse.data);
-        setProducts(
-          productsResponse.data.filter((product) => product.status === true)
-        );
-        setFeedbacks(feedbackResponse.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data: ", error);
@@ -128,91 +118,19 @@ const UserDetail = () => {
           style={{
             background: "rgb(213 216 230)",
             borderRadius: "10px",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center"
           }}
         >
-          <Divider />
-          <Title className="formTitle" level={3}>
-            Products in sell
-          </Title>
-          <List
-            grid={{ gutter: 16, column: 3 }}
-            dataSource={products}
-            renderItem={(watch) => (
-              <List.Item>
-                <Card
-                  hoverable
-                  cover={
-                    <div
-                      style={{
-                        background: "#f0f2f5",
-                        height: "150px",
-                        overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <img
-                        alt={watch.name}
-                        src={watch.imageUrl[0]}
-                        style={{
-                          maxHeight: "100%",
-                          maxWidth: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </div>
-                  }
-                  onClick={() => handleProductClick(watch.id)}
-                >
-                  <Card.Meta
-                    title={watch.name}
-                    description={
-                      <Space direction="vertical" size="small">
-                        <Text>Brand: {watch.brand}</Text>
-                        <Text>Price: {watch.price}</Text>
-                      </Space>
-                    }
-                  />
-                </Card>
-              </List.Item>
-            )}
-          />
+          <Title level={3}>Welcome to Watch Hub Profile</Title>
+          <Text style={{ fontSize: "16px" }}>
+            This is the official profile page for {userData.name}. 
+            As a valued member of our community, you can manage your orders and profile settings from your personal dashboard.
+          </Text>
         </Col>
-        <Collapse>
-          <Panel header="Feedback of the user" key="1">
-            <List
-              dataSource={feedbacks}
-              renderItem={(feedback) => (
-                <List.Item>
-                  <Card
-                    style={{
-                      background: "rgb(176 188 206)",
-                      padding: "20px",
-                      borderRadius: "10px",
-                    }}
-                  >
-                    <Card.Meta
-                      avatar={<Avatar src={feedback.avatarUrl} />}
-                      title={feedback.userName}
-                      description={
-                        <Space direction="vertical">
-                          <b>To product: {feedback.watchName}</b>
-                          <b>Comment: </b>
-                          <Text>{feedback.comments}</Text>
-                          <Rating score={feedback.rating} />
-                          <Text type="secondary">
-                            {formatDate(feedback.createdDate)}
-                          </Text>
-                        </Space>
-                      }
-                    />
-                  </Card>
-                </List.Item>
-              )}
-            />
-          </Panel>
-        </Collapse>
       </Row>
     </div>
   );

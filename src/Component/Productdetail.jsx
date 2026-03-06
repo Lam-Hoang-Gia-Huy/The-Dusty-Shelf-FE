@@ -87,7 +87,18 @@ const ProductDetail = () => {
     return <Loading />;
   }
 
-  const showAddToCartButton = productData?.status === true;
+  if (!productData) {
+    return (
+      <Content style={{ padding: "50px", textAlign: "center" }}>
+        <Typography.Title level={3}>Product not found</Typography.Title>
+        <Button type="primary" onClick={() => navigate("/")}>
+          Back to Home
+        </Button>
+      </Content>
+    );
+  }
+
+  const showAddToCartButton = productData.status === true;
 
   return (
     <Content
@@ -108,7 +119,7 @@ const ProductDetail = () => {
       >
         <Col span={12}>
           <Carousel arrows>
-            {productData.imageUrl.map((imageUrl) => (
+            {productData.imageUrl?.map((imageUrl) => (
               <div key={imageUrl}>
                 <PhotoProvider>
                   <PhotoView src={imageUrl}>

@@ -1,22 +1,28 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
   Layout,
-  ConfigProvider,
   Button,
   Form,
   Input,
-  Checkbox,
   Typography,
   message,
-  theme,
+  Card,
+  Space,
+  Divider
 } from "antd";
+import { 
+  UserOutlined, 
+  LockOutlined, 
+  LoginOutlined, 
+  ArrowLeftOutlined 
+} from "@ant-design/icons";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "./Hooks/useAuth";
 import axios from "axios";
 
 const { Content } = Layout;
-const { Title } = Typography;
-const LOGIN_URL = "http://localhost:8080/api/v1/auth/authenticate"; // Change this to your actual login endpoint URL
+const { Title, Text } = Typography;
+const LOGIN_URL = "http://localhost:8080/api/v1/auth/authenticate";
 
 const LoginPage = () => {
   const { setAuth } = useAuth();
@@ -24,30 +30,23 @@ const LoginPage = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
   const userRef = useRef();
-  const errRef = useRef();
-  const [errMsg, setErrMsg] = useState("");
-
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    userRef.current.focus();
-  }, []);
-
-  useEffect(() => {
-    setErrMsg("");
+    if (userRef.current) {
+        userRef.current.focus();
+    }
   }, []);
 
   const handleSubmit = async (values) => {
+    setLoading(true);
     try {
-      const response = await axios.post(LOGIN_URL, values); // Send login request to the backend
-      const { user, token, refreshToken } = response.data; // Extract user information and token from the response
+      const response = await axios.post(LOGIN_URL, values);
+      const { user, token, refreshToken } = response.data;
 
-      // Store user information and token in the frontend
       setAuth({
         id: user.id,
-        usertName: user.userName,
+        userName: user.userName,
         email: user.email,
         avatarUrl: user.avatarUrl,
         role: user.role,
@@ -63,88 +62,147 @@ const LoginPage = () => {
         navigate(from, { replace: true });
       }
     } catch (err) {
+      console.error(err);
       if (!err?.response) {
-        setErrMsg("No Server Response");
+        message.error("No Server Response");
       } else if (err.response?.status === 400) {
-        setErrMsg("Incorrect Email or Password");
+        message.error("Incorrect Email or Password");
       } else if (err.response?.status === 401) {
-        setErrMsg("Unauthorized");
+        message.error("Unauthorized");
       } else {
-        setErrMsg("Login Failed");
+        message.error("Login Failed");
       }
-      errRef.current.focus();
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ConfigProvider theme={{ token: { colorBgContainer, borderRadiusLG } }}>
-      <Content
-        style={{
-          padding: "50px 300px 150px",
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
+    <Layout style={{ minHeight: "100vh", background: "linear-gradient(135deg, #2c3e50 0%, #000000 100%)" }}>
+      <Content style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "20px" }}>
+        <Card
           style={{
-            padding: 24,
-            flexGrow: 1,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
+            width: "100%",
+            maxWidth: "450px",
+            background: "rgba(255, 255, 255, 0.1)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "30px",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+            overflow: "hidden"
           }}
+          bodyStyle={{ padding: "40px" }}
         >
-          <Title className="formTitle" type="success" level={2}>
-            Login
-          </Title>
-          <p
-            ref={errRef}
-            className={errMsg ? "errmsg" : "offscreen"}
-            aria-live="assertive"
-          >
-            {errMsg}
-          </p>
+          <div style={{ textAlign: "center", marginBottom: "40px" }}>
+            <div style={{ 
+                width: "80px", 
+                height: "80px", 
+                background: "rgba(255,255,255,0.1)", 
+                borderRadius: "20px", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                marginBottom: "20px",
+                border: "1px solid rgba(255,255,255,0.1)"
+            }}>
+              <LoginOutlined style={{ fontSize: "40px", color: "#fff" }} />
+            </div>
+            <Title level={2} style={{ color: "#fff", margin: 0, fontWeight: "800" }}>Welcome Back</Title>
+            <Text style={{ color: "rgba(255,255,255,0.6)" }}>Enter your credentials to access your account</Text>
+          </div>
+
           <Form
-            name="basic"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 16 }}
-            style={{ maxWidth: 600 }}
-            initialValues={{ remember: true }}
+            name="login_form"
+            layout="vertical"
             onFinish={handleSubmit}
-            autoComplete="off"
+            size="large"
           >
             <Form.Item
-              label="Email"
               name="email"
               rules={[
                 { required: true, message: "Please input your email!" },
                 { type: "email", message: "Please enter a valid email!" },
               ]}
             >
-              <Input ref={userRef} />
+              <Input 
+                prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.7)" }} />} 
+                placeholder="Email Address" 
+                ref={userRef}
+                style={{ 
+                    background: "rgba(255,255,255,0.05)", 
+                    border: "1px solid rgba(255,255,255,0.1)", 
+                    color: "#fff",
+                    borderRadius: "12px"
+                }}
+              />
             </Form.Item>
 
             <Form.Item
-              label="Password"
               name="password"
-              rules={[
-                { required: true, message: "Please input your password!" },
-              ]}
+              rules={[{ required: true, message: "Please input your password!" }]}
+              style={{ marginBottom: "12px" }}
             >
-              <Input.Password />
+              <Input.Password
+                prefix={<LockOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
+                placeholder="Password"
+                style={{ 
+                    background: "rgba(255,255,255,0.05)", 
+                    border: "1px solid rgba(255,255,255,0.1)", 
+                    color: "#fff",
+                    borderRadius: "12px"
+                }}
+              />
             </Form.Item>
-            <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-              <Button type="primary" htmlType="submit">
-                Log in
+
+            <div style={{ textAlign: "right", marginBottom: "24px" }}>
+              <Link style={{ color: "#74b9ff", fontSize: "14px" }} to="#">Forgot password?</Link>
+            </div>
+
+            <Form.Item>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                block 
+                loading={loading}
+                style={{ 
+                    height: "50px", 
+                    borderRadius: "12px", 
+                    background: "#fff", 
+                    color: "#2c3e50", 
+                    border: "none",
+                    fontWeight: "700",
+                    fontSize: "16px"
+                }}
+              >
+                Sign In
               </Button>
-              <Link style={{ marginLeft: "90px" }} to="/register">
-                Don't have an account? Register here!
-              </Link>
             </Form.Item>
+
+            <Divider style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)" }}>OR</Divider>
+
+            <div style={{ textAlign: "center", marginTop: "24px" }}>
+              <Text style={{ color: "rgba(255,255,255,0.6)" }}>New here? </Text>
+              <Link to="/register" style={{ color: "#fff", fontWeight: "600" }}>Create an account</Link>
+            </div>
           </Form>
+
+          <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", textAlign: "center" }}>
+          </div>
+        </Card>
+
+        {/* Home link */}
+        <div style={{ position: "fixed", top: "40px", left: "40px" }}>
+            <Button 
+                type="text" 
+                onClick={() => navigate("/")} 
+                icon={<ArrowLeftOutlined />} 
+                style={{ color: "#fff", display: "flex", alignItems: "center" }}
+            >
+                Back to Home
+            </Button>
         </div>
       </Content>
-    </ConfigProvider>
+    </Layout>
   );
 };
 

@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useAuth from "./Hooks/useAuth";
-import { Table, Button, Space, Tag, Popconfirm, message } from "antd";
+import { Table, Button, Space, Tag, Popconfirm, message, Modal, Form, Input } from "antd";
 import { Content } from "antd/es/layout/layout";
 
 const UserManagement = () => {
   const { auth } = useAuth();
   const [users, setUsers] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,7 +22,31 @@ const UserManagement = () => {
         Authorization: `Bearer ${auth.accessToken}`,
       },
     });
-    setUsers(response.data);
+    // Filter out ADMIN users to prevent accidental management and fulfill user request
+    const regularUsers = response.data.filter(user => user.role !== "ADMIN");
+    setUsers(regularUsers);
+  };
+
+  const handleCreateStaff = async (values) => {
+    try {
+      const payload = {
+        userName: values.userName,
+        email: values.email,
+        password: values.password,
+        avatarUrl: "https://res.cloudinary.com/dfeuv0ynf/image/upload/v1718868313/ytqqm8d9pavipqjjyfwi.jpg",
+      };
+      await axios.post("http://localhost:8080/api/v1/auth/register-staff", payload, {
+        headers: {
+          Authorization: `Bearer ${auth.accessToken}`,
+        },
+      });
+      message.success("Staff created successfully");
+      setIsModalVisible(false);
+      form.resetFields();
+      fetchUsers();
+    } catch (error) {
+      message.error("Failed to create staff: " + (error.response?.data?.message || error.message));
+    }
   };
 
   const deactivateUser = async (id) => {
@@ -76,6 +102,16 @@ const UserManagement = () => {
       key: "name",
     },
     {
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (role) => (
+        <Tag color={role === "ADMIN" ? "volcano" : role === "STAFF" ? "blue" : "green"}>
+          {role}
+        </Tag>
+      ),
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
@@ -105,7 +141,7 @@ const UserManagement = () => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type="danger" ghost size="small">
+              <Button type="primary" danger ghost size="small">
                 Deactivate
               </Button>
             </Popconfirm>
@@ -135,15 +171,71 @@ const UserManagement = () => {
         flexDirection: "column",
       }}
     >
-      <div>
-        <h1>User Management</h1>
+      <div style={{ marginTop: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <h1>User Management</h1>
+          <Button type="primary" onClick={() => setIsModalVisible(true)}>
+            Create Staff
+          </Button>
+        </div>
         <Table
           dataSource={users}
           columns={columns}
           pagination={{ pageSize: 10 }}
           rowKey={(record) => record.id}
-        />{" "}
+        />
       </div>
+
+      <Modal
+        title="Create Staff Account"
+        open={isModalVisible}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreateStaff}
+          initialValues={{
+            userName: "",
+            email: "",
+            password: "",
+          }}
+        >
+          <Form.Item
+            name="userName"
+            label="Name"
+            rules={[{ required: true, message: "Please enter staff name" }]}
+          >
+            <Input placeholder="Staff Name" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: "Please enter email" },
+              { type: "email", message: "Please enter a valid email" }
+            ]}
+          >
+            <Input placeholder="Staff Email" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[{ required: true, message: "Please enter password" }]}
+          >
+            <Input.Password placeholder="Password" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
+              Create Staff
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </Content>
   );
 };

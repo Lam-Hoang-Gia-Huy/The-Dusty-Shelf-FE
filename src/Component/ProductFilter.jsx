@@ -1,224 +1,254 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import {
+  Layout,
+  Row,
+  Col,
+  Input,
+  Select,
+  Slider,
+  Button,
+  Card,
+  Typography,
+  Pagination,
+  Empty,
+  Spin,
+  Space
+} from "antd";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { Row, Col, Card, Slider, Input, Select, Button } from "antd";
-import { Content } from "antd/es/layout/layout";
-import Loading from "./Loading";
-import { theme } from "antd";
-import useAuth from "./Hooks/useAuth"; // Import the useAuth hook
+import { useNavigate } from "react-router-dom";
+import moment from "moment";
+import useAuth from "./Hooks/useAuth";
 
+const { Content } = Layout;
+const { Title, Text } = Typography;
 const { Option } = Select;
 
 const ProductFilter = () => {
-  const { type } = useParams();
-  const { search } = useLocation();
-  const query = new URLSearchParams(search);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("ascending");
-  const [priceRange, setPriceRange] = useState([0, 5000000]);
-  const [searchTerm, setSearchTerm] = useState(query.get("name") || "");
-  const [category, setCategory] = useState(query.get("category") || "");
-  const [filterApplied, setFilterApplied] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [totalElements, setTotalElements] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const { auth } = useAuth();
 
-  // Temporary state for holding the input values
-  const [tempSearchTerm, setTempSearchTerm] = useState(searchTerm);
-  const [tempCategory, setTempCategory] = useState(category);
-  const [tempPriceRange, setTempPriceRange] = useState(priceRange);
+  const [filters, setFilters] = useState({
+    name: "",
+    category: "",
+    minPrice: 0,
+    maxPrice: 3000000,
+  });
 
-  const marks = {
-    0: "0",
-    1000000: "1,000,000",
-    2000000: "2,000,000",
-    3000000: "3,000,000",
-    4000000: "4,000,000",
-    5000000: {
-      style: { color: "#f50" },
-      label: <strong>5,000,000</strong>,
-    },
-  };
-
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
-  const { auth } = useAuth(); // Get the auth object
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/v1/product/search`,
-          {
-            params: {
-              name: searchTerm,
-              category: category,
-              minPrice: priceRange[0],
-              maxPrice: priceRange[1],
-            },
-          }
-        );
-        const filteredProducts =
-          auth?.role === "ADMIN" || auth?.role === "STAFF"
-            ? response.data
-            : response.data.filter(
-                (product) =>
-                  (!type || product.category === type) &&
-                  product.status === true
-              );
-        setProducts(filteredProducts);
-      } catch (error) {
-        console.error("Error fetching product details: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [type, searchTerm, category, priceRange, auth]);
+    fetchCategories();
+    handleSearch(1, pageSize);
+  }, []);
 
-  const sortItems = (sortBy) => {
-    const sortedItems = [...products];
-    if (sortBy === "ascending") {
-      sortedItems.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "descending") {
-      sortedItems.sort((a, b) => b.price - a.price);
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/v1/category");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
     }
-    setProducts(sortedItems);
   };
 
-  const handleSortChange = (value) => {
-    setSortBy(value);
-    sortItems(value);
+  const handleSearch = async (page = 1, size = 12, overrideFilters = null) => {
+    setLoading(true);
+    try {
+      const { name, category, minPrice, maxPrice } = overrideFilters || filters;
+      const response = await axios.get("http://localhost:8080/api/v1/product/search", {
+        params: {
+          name,
+          category: category === "All" || !category ? "" : category,
+          minPrice,
+          maxPrice,
+          page: page - 1,
+          size,
+        },
+      });
+      setProducts(response.data.content);
+      setTotalElements(response.data.totalElements);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error("Error searching products:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleItemClick = (id) => {
-    navigate(`/product/${id}`);
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-
-  const handleTempPriceRangeChange = (value) => {
-    setTempPriceRange(value);
+  const handlePriceChange = (values) => {
+    setFilters((prev) => ({
+      ...prev,
+      minPrice: values[0],
+      maxPrice: values[1],
+    }));
   };
 
-  const handleFilterClick = () => {
-    setSearchTerm(tempSearchTerm);
-    setCategory(tempCategory);
-    setPriceRange(tempPriceRange);
-    setFilterApplied(true);
-    navigate(
-      `/filter?name=${tempSearchTerm}&category=${tempCategory}&minPrice=${tempPriceRange[0]}&maxPrice=${tempPriceRange[1]}`
-    );
+  const getTimeSincePost = (postDate) => {
+    return moment(postDate).fromNow();
   };
-
-  if (loading) {
-    return <Loading />;
-  }
 
   return (
-    <Content
-      style={{
-        padding: "20px 400px",
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <b style={{ marginBottom: "5px" }}>Name: </b>
-      <Input
-        placeholder="Search Product name"
-        value={tempSearchTerm}
-        onChange={(e) => setTempSearchTerm(e.target.value)}
-        style={{ marginBottom: 20, width: "60%" }}
-      />
-      <b style={{ marginBottom: "5px" }}>Category: </b>
-      <Select
-        placeholder="Filter by brand"
-        value={tempCategory}
-        onChange={(value) => setTempCategory(value)}
-        style={{ marginBottom: 20, width: "60%" }}
-      >
-        <Option value="Sweetened">Sweetened</Option>
-        <Option value="Powdered milk">Powdered milk</Option>
-        <Option value="Condensed milk">Condensed milk</Option>
-        <Option value="Fresh milk">Fresh milk</Option>
-        <Option value="UHT Milk">UHT Milk</Option>
-      </Select>
-      <b style={{ marginBottom: "5px" }}>Price range: </b>
-      <Slider
-        range
-        value={tempPriceRange}
-        marks={marks}
-        step={50000}
-        min={0}
-        max={5000000}
-        onChange={handleTempPriceRangeChange}
-        style={{ marginBottom: 40, width: 650 }}
-      />
-      <Button
-        type="primary"
-        onClick={handleFilterClick}
-        style={{ width: "20%", marginBottom: "15px" }}
-      >
-        Filter
-      </Button>
-      <Select
-        defaultValue="Sort by price"
-        style={{ width: 170, marginBottom: 20 }}
-        onChange={handleSortChange}
-        options={[
-          { value: "ascending", label: "Lowest to highest" },
-          { value: "descending", label: "Highest to lowest" },
-        ]}
-      />
-      <div
-        style={{
-          padding: 24,
-          flexGrow: 1,
-          background: colorBgContainer,
-          borderRadius: borderRadiusLG,
-        }}
-      >
-        <h1>{type} Products</h1>
-        <Row gutter={[16, 16]}>
-          {products.map((product) => (
-            <Col key={product.id} span={24}>
-              <Card
-                style={{ backgroundColor: "#e3cbcb" }}
-                hoverable
-                onClick={() => handleItemClick(product.id)}
+    <Content style={{ padding: "40px 100px", background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", minHeight: "100vh" }}>
+      <Row gutter={[32, 32]}>
+        {/* Sidebar Filters */}
+        <Col xs={24} md={7} lg={6}>
+          <Card
+            title={<Space><FilterOutlined /> Filters</Space>}
+            style={{
+              borderRadius: "20px",
+              boxShadow: "0 8px 32px rgba(31,38,135,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.8)",
+              backdropFilter: "blur(10px)"
+            }}
+          >
+            <Space direction="vertical" style={{ width: "100%" }} size="large">
+              <div>
+                <Text strong>Search by Name</Text>
+                <Input
+                  placeholder="Watch name..."
+                  prefix={<SearchOutlined />}
+                  value={filters.name}
+                  onChange={(e) => handleFilterChange("name", e.target.value)}
+                  style={{ marginTop: "8px", borderRadius: "8px" }}
+                />
+              </div>
+
+              <div>
+                <Text strong>Category</Text>
+                <Select
+                  placeholder="Select Category"
+                  style={{ width: "100%", marginTop: "8px" }}
+                  allowClear
+                  onChange={(val) => handleFilterChange("category", val)}
+                  value={filters.category || undefined}
+                >
+                  <Option value="All">All Categories</Option>
+                  {categories.map((cat) => (
+                    <Option key={cat.id} value={cat.name}>{cat.name}</Option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <Text strong>Price Range (đ)</Text>
+                <Slider
+                  range
+                  min={0}
+                  max={3000000}
+                  step={50000}
+                  value={[filters.minPrice, filters.maxPrice]}
+                  onChange={handlePriceChange}
+                  onAfterChange={(vals) => handleSearch(1, pageSize, { ...filters, minPrice: vals[0], maxPrice: vals[1] })}
+                  tipFormatter={(val) => `${val?.toLocaleString() || 0} đ`}
+                  style={{ marginTop: "24px" }}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+                  <Text type="secondary">{filters.minPrice?.toLocaleString() || 0}đ</Text>
+                  <Text type="secondary">{filters.maxPrice?.toLocaleString() || 0}đ</Text>
+                </div>
+              </div>
+
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                block
+                onClick={() => handleSearch(1, pageSize)}
+                style={{ height: "45px", borderRadius: "12px", background: "#2c3e50", border: "none" }}
               >
-                <Row gutter={16} align="middle">
-                  <Col span={8}>
-                    <img
-                      alt={product?.name}
-                      src={product?.imageUrl[0]}
-                      style={{
-                        width: "100%",
-                        maxHeight: "130px",
-                        objectFit: "contain",
-                      }}
-                    />
-                  </Col>
-                  <Col span={16}>
-                    <Card.Meta
-                      title={product.name}
-                      description={
-                        <>
-                          <p>{product.description}</p>
-                          <p className="item-price">
-                            Price: {product.price.toLocaleString()} đ
-                          </p>
-                        </>
+                Apply Filters
+              </Button>
+            </Space>
+          </Card>
+        </Col>
+
+        {/* Results */}
+        <Col xs={24} md={17} lg={18}>
+          <div style={{
+            marginBottom: "30px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "rgba(255,255,255,0.5)",
+            padding: "15px 25px",
+            borderRadius: "15px",
+            backdropFilter: "blur(5px)"
+          }}>
+            <Title level={3} style={{ margin: 0, color: "#2c3e50" }}>Search Results</Title>
+            <Text strong style={{ color: "#7f8c8d" }}>{totalElements} products found</Text>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "100px" }}><Spin size="large" /></div>
+          ) : products.length > 0 ? (
+            <>
+              <Row gutter={[24, 24]}>
+                {products.map((item) => (
+                  <Col key={item.id} xs={24} sm={12} lg={8}>
+                    <Card
+                      hoverable
+                      className="premium-product-card"
+                      style={{ borderRadius: "20px", overflow: "hidden", border: "none", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}
+                      onClick={() => navigate(`/product/${item.id}`)}
+                      cover={
+                        <div style={{ height: "220px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: "15px" }}>
+                          <img
+                            alt={item.name}
+                            src={item.imageUrl[0]}
+                            style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
+                            className="card-hover-image"
+                          />
+                        </div>
                       }
-                    />
+                    >
+                      <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{item.category}</Text>
+                      <Title level={5} style={{ margin: "4px 0 12px", height: "48px", overflow: "hidden" }}>{item.name}</Title>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Text strong style={{ color: "#c0392b", fontSize: "1.1rem" }}>{item.price?.toLocaleString()} đ</Text>
+                        <Text type="secondary" style={{ fontSize: "12px" }}>{getTimeSincePost(item.createdDate)}</Text>
+                      </div>
+                    </Card>
                   </Col>
-                </Row>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </div>
+                ))}
+              </Row>
+              <div style={{ textAlign: "center", marginTop: "60px", paddingBottom: "40px" }}>
+                <Pagination
+                  current={currentPage}
+                  pageSize={pageSize}
+                  total={totalElements}
+                  onChange={(page, size) => handleSearch(page, size)}
+                  showSizeChanger
+                  onShowSizeChange={(current, size) => setPageSize(size)}
+                />
+              </div>
+            </>
+          ) : (
+            <div style={{
+              background: "rgba(255,255,255,0.6)",
+              padding: "80px",
+              borderRadius: "30px",
+              textAlign: "center",
+              backdropFilter: "blur(10px)"
+            }}>
+              <Empty description={<Text style={{ fontSize: "1.2rem" }}>No products match your filters</Text>} />
+              <Button style={{ marginTop: "20px" }} onClick={() => {
+                const defaults = { name: "", category: "", minPrice: 0, maxPrice: 3000000 };
+                setFilters(defaults);
+                handleSearch(1, pageSize, defaults);
+              }}>Reset Filters</Button>
+            </div>
+          )}
+        </Col>
+      </Row>
     </Content>
   );
 };

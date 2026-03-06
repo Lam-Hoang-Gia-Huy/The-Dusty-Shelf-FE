@@ -17,6 +17,7 @@ import {
   faFolder,
   faUserAlt,
   faTicket,
+  faTag,
 } from "@fortawesome/free-solid-svg-icons";
 import Logo from "../Image/avatar-(ProfilePictureMaker.com).png";
 
@@ -91,11 +92,12 @@ const HeaderBar = () => {
                 <FontAwesomeIcon size="lg" icon={faUpload} /> Upload Product
               </Menu.Item>
 
-              <Menu.Item key="create-voucher">
-                <FontAwesomeIcon size="lg" icon={faUpload} /> Create voucher
-              </Menu.Item>
               <Menu.Item key="vouchers">
-                <FontAwesomeIcon size="lg" icon={faTicket} /> Voucher List
+                <FontAwesomeIcon size="lg" icon={faTicket} /> Vouchers
+              </Menu.Item>
+              <Menu.Item key="categories">
+                <FontAwesomeIcon size="lg" icon={faTag} />
+                Categories
               </Menu.Item>
             </>
           )}
@@ -115,11 +117,12 @@ const HeaderBar = () => {
               <Menu.Item key="store-orders">
                 <FontAwesomeIcon size="lg" icon={faFolder} /> Store Orders{" "}
               </Menu.Item>
-              <Menu.Item key="create-voucher">
-                <FontAwesomeIcon size="lg" icon={faUpload} /> Create voucher
-              </Menu.Item>
               <Menu.Item key="vouchers">
-                <FontAwesomeIcon size="lg" icon={faTicket} /> Voucher List
+                <FontAwesomeIcon size="lg" icon={faTicket} /> Vouchers
+              </Menu.Item>
+              <Menu.Item key="categories">
+                <FontAwesomeIcon size="lg" icon={faTag} />
+                Categories
               </Menu.Item>
             </>
           )}

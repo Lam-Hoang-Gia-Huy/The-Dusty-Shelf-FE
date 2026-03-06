@@ -9,37 +9,35 @@ import {
   Select,
   message,
 } from "antd";
-import axios from "axios";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCarriageBaby,
-  faHandsHoldingChild,
-  faChild,
-  faBaby,
-  faChildReaching,
-} from "@fortawesome/free-solid-svg-icons";
+import axiosInstance from "./Config/axiosConfig";
+
 
 const { Option } = Select;
-
-const productTypes = [
-  { name: "Sweetened", icon: faCarriageBaby },
-  { name: "Powdered milk", icon: faHandsHoldingChild },
-  { name: "Condensed milk", icon: faChild },
-  { name: "Fresh milk", icon: faBaby },
-  { name: "UHT Milk", icon: faChildReaching },
-];
 
 const UpdateProduct = () => {
   const { id } = useParams();
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get("/api/v1/category");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     // Fetch product details and set form values
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8080/api/v1/product/${id}`
+        const response = await axiosInstance.get(
+          `/api/v1/product/${id}`
         );
         form.setFieldsValue(response.data);
       } catch (error) {
@@ -52,7 +50,7 @@ const UpdateProduct = () => {
 
   const onFinish = async (values) => {
     try {
-      await axios.put(`http://localhost:8080/api/v1/product/${id}`, values);
+      await axiosInstance.put(`/api/v1/product/${id}`, values);
       message.success("Product updated successfully!");
       navigate(`/product/${id}`);
     } catch (error) {
@@ -83,20 +81,16 @@ const UpdateProduct = () => {
           <Input />
         </Form.Item>
         <Form.Item
-          name="category"
+          name="categoryId"
           label="Category"
           rules={[
             { required: true, message: "Please select the product category" },
           ]}
         >
           <Select>
-            {productTypes.map((type) => (
-              <Option key={type.name} value={type.name}>
-                <FontAwesomeIcon
-                  icon={type.icon}
-                  style={{ marginRight: "8px" }}
-                />
-                {type.name}
+            {categories.map((category) => (
+              <Option key={category.id} value={category.id}>
+                {category.name}
               </Option>
             ))}
           </Select>

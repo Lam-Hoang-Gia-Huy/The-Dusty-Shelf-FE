@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axiosInstance from "./Config/axiosConfig";
 import {
   Layout,
   theme,
@@ -31,6 +32,20 @@ const RegisterPost = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get("/api/v1/category");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleFilesSelected = (fileList) => {
     setSelectedFiles(fileList.map((file) => file.originFileObj));
@@ -91,13 +106,7 @@ const RegisterPost = () => {
     }
   };
 
-  const brands = [
-    "Sweetened",
-    "Powdered milk",
-    "Condensed milk",
-    "Fresh milk",
-    "UHT Milk",
-  ];
+
 
   return (
     <Content
@@ -149,19 +158,19 @@ const RegisterPost = () => {
                 <Input placeholder="Enter name here" />
               </Form.Item>
               <Form.Item
-                name="category"
+                name="categoryId"
                 label="Category"
                 rules={[
                   {
                     required: true,
-                    message: "Please select a brand",
+                    message: "Please select a category",
                   },
                 ]}
               >
                 <Select placeholder="Choose category here">
-                  {brands.map((brand, index) => (
-                    <Option key={index} value={brand}>
-                      {brand}
+                  {categories.map((category) => (
+                    <Option key={category.id} value={category.id}>
+                      {category.name}
                     </Option>
                   ))}
                 </Select>

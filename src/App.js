@@ -21,11 +21,11 @@ import Chat from "./Component/Chat";
 import UserManagement from "./Component/UserManagement";
 import CreateFeedback from "./Component/FeedbackPage";
 import Revenue from "./Component/Revenue";
-import VoucherForm from "./Component/VoucherForm";
-import VoucherList from "./Component/VoucherList";
+import VoucherManagement from "./Component/VoucherManagement";
 import UpdateProduct from "./Component/UpdateProduct";
 import AllOrders from "./Component/AllOrders";
 import OrderDetailForStaff from "./Component/OrderDetailForStaff";
+import CategoryManagement from "./Component/CategoryManagement";
 const App = () => {
   return (
     <Routes>
@@ -56,9 +56,9 @@ const App = () => {
           <Route path="/edit-profile" element={<EditProfile />} />
         </Route>
         <Route element={<RequireAuth roles={["ADMIN", "STAFF"]} />}>
-          <Route path="/vouchers" element={<VoucherList />} />
-          <Route path="/create-voucher" element={<VoucherForm />} />
+          <Route path="/vouchers" element={<VoucherManagement />} />
           <Route path="/store-orders" element={<AllOrders />} />
+          <Route path="/categories" element={<CategoryManagement />} />
           <Route
             path="/store-orders-items/:orderId"
             element={<OrderDetailForStaff />}
