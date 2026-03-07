@@ -19,7 +19,7 @@ import {
   StopOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "./Config/axiosConfig";
-import useAuth from "./Hooks/useAuth";
+
 import moment from "moment";
 
 const { Title, Text } = Typography;
@@ -28,7 +28,7 @@ const VoucherManagement = () => {
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { auth } = useAuth();
+
   const [form] = Form.useForm();
 
   const fetchVouchers = async () => {

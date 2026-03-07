@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
   MainContainer,
   Sidebar,
-  Search,
   ConversationList,
   Conversation,
   Avatar,
@@ -13,7 +12,6 @@ import {
   MessageList,
   Message,
   MessageInput,
-  TypingIndicator,
   MessageSeparator,
 } from "@chatscope/chat-ui-kit-react";
 import SockJS from "sockjs-client";

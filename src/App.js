@@ -2,7 +2,7 @@ import React from "react";
 import "./App.css";
 import MainPage from "./Component/MainPage";
 import RequireAuth from "./Component/RequireAuth";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import ProductDetail from "./Component/Productdetail";
 import ProductFilter from "./Component/ProductFilter";
 import Register from "./Component/Register";
