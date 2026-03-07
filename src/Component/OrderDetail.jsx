@@ -101,8 +101,21 @@ const OrderDetail = () => {
           <Descriptions.Item label="Order ID">
             <Tag color="blue">{order.id}</Tag>
           </Descriptions.Item>
+          {order.voucherCode && (
+            <Descriptions.Item label="Original Amount">
+              <Text delete>{formatCurrency(order.originalAmount)}</Text>
+            </Descriptions.Item>
+          )}
+          {order.voucherCode && (
+            <Descriptions.Item label="Voucher Applied">
+              <Tag color="green">{order.voucherCode}</Tag>
+              <Text type="danger"> -{formatCurrency(order.discountAmount)}</Text>
+            </Descriptions.Item>
+          )}
           <Descriptions.Item label="Total Amount">
-            <Text strong>{formatCurrency(order.totalAmount)}</Text>
+            <Text strong style={{ fontSize: "18px", color: "#f5222d" }}>
+              {formatCurrency(order.totalAmount)}
+            </Text>
           </Descriptions.Item>
           <Descriptions.Item label="Created Date">
             <Text>
