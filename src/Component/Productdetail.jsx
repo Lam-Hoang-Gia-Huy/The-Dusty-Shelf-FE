@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Carousel, message, List, Avatar, Rate, Select } from "antd";
+import { Carousel, message, List, Avatar, Rate, Select, InputNumber } from "antd";
 import axios from "axios";
 import { Layout, Col, Row, Button, Typography } from "antd";
 import moment from "moment";
@@ -25,6 +25,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const { auth } = useAuth();
   const navigate = useNavigate();
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +59,7 @@ const ProductDetail = () => {
       try {
         const cartItem = {
           product: { id: productData.id },
+          quantity: quantity,
         };
         await axios.post(
           `http://localhost:8080/api/v1/cart/${auth.id}`,
@@ -211,17 +213,29 @@ const ProductDetail = () => {
             auth &&
             auth.role !== "ADMIN" &&
             auth.role !== "STAFF" && (
-              <Button
-                type="primary"
-                style={{
-                  background: "#ff4d4f",
-                  borderColor: "#ff4d4f",
-                  marginTop: "10px",
-                }}
-                onClick={addToCart}
-              >
-                Add to Cart <FontAwesomeIcon size="lg" icon={faCartShopping} />
-              </Button>
+              <div style={{ marginTop: "10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
+                  <Text strong style={{ fontSize: "16px", color: "#666" }}>Quantity:</Text>
+                  <InputNumber
+                    min={1}
+                    max={productData.stockQuantity}
+                    value={quantity}
+                    onChange={(val) => setQuantity(val || 1)}
+                    style={{ width: "80px" }}
+                  />
+                  <Text type="secondary" style={{ fontSize: "12px" }}>({productData.stockQuantity} in stock)</Text>
+                </div>
+                <Button
+                  type="primary"
+                  style={{
+                    background: "#ff4d4f",
+                    borderColor: "#ff4d4f",
+                  }}
+                  onClick={addToCart}
+                >
+                  Add to Cart <FontAwesomeIcon size="lg" icon={faCartShopping} />
+                </Button>
+              </div>
             )}
         </Col>
       </Row>

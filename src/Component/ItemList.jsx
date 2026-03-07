@@ -109,9 +109,26 @@ const ItemList = () => {
                 <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>
                   {item.category}
                 </Text>
-                <Title level={5} style={{ margin: "4px 0 12px", height: "48px", overflow: "hidden" }}>
+                <Title level={5} style={{ margin: "4px 0 6px", height: "48px", overflow: "hidden" }}>
                   {item.name}
                 </Title>
+                {item.description && (
+                  <Text
+                    type="secondary"
+                    style={{
+                      fontSize: "12px",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      marginBottom: "8px",
+                      lineHeight: "1.5",
+                      height: "36px",
+                    }}
+                  >
+                    {item.description}
+                  </Text>
+                )}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Text strong style={{ color: "#c0392b", fontSize: "1.1rem" }}>
                     {item.price?.toLocaleString()} đ

@@ -1,143 +1,112 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
-  List,
   Button,
   Typography,
   Row,
   Col,
-  theme,
   InputNumber,
   Select,
   message,
-  Card,
   Empty,
+  Divider,
+  Tag,
+  Spin,
 } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCartShopping } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCartShopping,
+  faTrash,
+  faTicket,
+} from "@fortawesome/free-solid-svg-icons";
 import useAuth from "./Hooks/useAuth";
 import CheckoutButton from "./CheckOutButton";
 
 const { Text, Title } = Typography;
 const { Option } = Select;
 
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+
 const Cart = () => {
   const [cart, setCart] = useState({ cartItems: [], totalPrice: 0 });
   const [voucherCode, setVoucherCode] = useState("");
   const [vouchers, setVouchers] = useState([]);
+  const [updatingItems, setUpdatingItems] = useState({});
+  const [loading, setLoading] = useState(true);
   const { auth } = useAuth();
 
+  const fetchCart = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/cart/${auth.id}`,
+        { headers: { Authorization: `Bearer ${auth.accessToken}` } }
+      );
+      if (response.status === 200) setCart(response.data);
+    } catch (error) {
+      console.error("Error fetching cart data", error);
+    }
+  }, [auth.id, auth.accessToken]);
+
   useEffect(() => {
-    const fetchCart = async () => {
+    const init = async () => {
+      setLoading(true);
+      await fetchCart();
       try {
-        const response = await axios.get(
-          `http://localhost:8080/api/v1/cart/${auth.id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${auth.accessToken}`,
-            },
-          }
+        const res = await axios.get(
+          `http://localhost:8080/api/v1/voucher/available`,
+          { headers: { Authorization: `Bearer ${auth.accessToken}` } }
         );
-        if (response.status === 200) {
-          setCart(response.data);
-        } else if (response.status === 404) {
-          console.log("User not found or cart is empty");
-        }
-      } catch (error) {
-        console.error("Error fetching cart data", error);
+        if (res.status === 200) setVouchers(res.data);
+      } catch (e) {
+        console.error("Error fetching vouchers", e);
       }
+      setLoading(false);
     };
-
-    const fetchVouchers = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/v1/voucher/available`, // Updated endpoint for available vouchers
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${auth.accessToken}`,
-            },
-          }
-        );
-        if (response.status === 200) {
-          setVouchers(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching vouchers", error);
-      }
-    };
-
-    fetchCart();
-    fetchVouchers();
+    init();
   }, [auth.id, auth.accessToken]);
 
   const handleRemoveFromCart = async (cartItemId) => {
+    setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
     try {
       await axios.delete(
         `http://localhost:8080/api/v1/cart/${auth.id}/${cartItemId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${auth.accessToken}` } }
       );
-
-      // Fetch updated cart data
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/cart/${auth.id}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        setCart(response.data);
-      }
+      await fetchCart();
     } catch (error) {
-      console.error("Error removing item from cart", error);
+      message.error("Failed to remove item.");
+    } finally {
+      setUpdatingItems((prev) => ({ ...prev, [cartItemId]: false }));
     }
   };
 
-  // const handleQuantityChange = async (cartItemId, newQuantity) => {
-  //   try {
-  //     await axios.put(
-  //       `http://localhost:8080/api/v1/cart/${auth.id}/${cartItemId}`,
-  //       { quantity: newQuantity },
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${auth.accessToken}`,
-  //         },
-  //       }
-  //     );
-  //     setCart((prevCart) => {
-  //       const updatedCartItems = prevCart.cartItems.map((item) => {
-  //         if (item.id === cartItemId) {
-  //           return { ...item, quantity: newQuantity };
-  //         }
-  //         return item;
-  //       });
-  //       const updatedTotalPrice = updatedCartItems.reduce(
-  //         (total, item) => total + item.product.price * item.quantity,
-  //         0
-  //       );
-  //       return {
-  //         ...prevCart,
-  //         cartItems: updatedCartItems,
-  //         totalPrice: updatedTotalPrice,
-  //       };
-  //     });
-  //   } catch (error) {
-  //     console.error("Error updating item quantity in cart", error);
-  //   }
-  // };
+  const handleQuantityChange = async (item, newQuantity) => {
+    if (!newQuantity || newQuantity < 1) return;
+    const cartItemId = item.id;
+    setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/api/v1/cart/${auth.id}/item/${cartItemId}`,
+        null,
+        {
+          params: { quantity: newQuantity },
+          headers: { Authorization: `Bearer ${auth.accessToken}` },
+        }
+      );
+      if (response.status === 200) setCart(response.data);
+    } catch (error) {
+      message.error("Failed to update quantity.");
+    } finally {
+      setUpdatingItems((prev) => ({ ...prev, [cartItemId]: false }));
+    }
+  };
 
   const handleApplyVoucher = async () => {
+    if (!voucherCode) {
+      message.warning("Please select a voucher.");
+      return;
+    }
     try {
       const response = await axios.put(
         `http://localhost:8080/api/v1/cart/${auth.id}/apply-voucher`,
@@ -150,109 +119,235 @@ const Cart = () => {
           },
         }
       );
-
       if (response.status === 200) {
         setCart(response.data);
         message.success("Voucher applied successfully!");
-      } else {
-        message.error("Failed to apply voucher.");
       }
     } catch (error) {
-      console.error("Error applying voucher", error);
       message.error("Invalid voucher code.");
     }
   };
 
-  const {
-    token: {
-      colorBgContainer,
-      borderRadiusLG,
-      colorPrimary,
-      colorText,
-      colorTextSecondary,
-      fontSize,
-      fontSizeLG,
-      fontSizeXL,
-      fontSizeHeading,
-      lineHeight,
-    },
-  } = theme.useToken();
+  // Calculate original total (before discount)
+  const originalTotal = cart.cartItems.reduce(
+    (sum, item) => sum + (item.product?.price || 0) * item.quantity,
+    0
+  );
+  const discountAmount = Math.max(0, originalTotal - cart.totalPrice);
+  const hasDiscount = discountAmount > 0;
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "80px 0" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        padding: 24,
-        backgroundColor: colorBgContainer,
-        borderRadius: borderRadiusLG,
-        color: colorText,
-      }}
-    >
-      <Title level={2} style={{ color: colorPrimary }}>
-        <FontAwesomeIcon icon={faCartShopping} /> Your Shopping Cart
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+      <Title level={2} style={{ marginBottom: 24 }}>
+        <FontAwesomeIcon icon={faCartShopping} style={{ marginRight: 10 }} />
+        Your Shopping Cart
       </Title>
+
       {cart.cartItems.length > 0 ? (
-        <>
-          <List
-            itemLayout="horizontal"
-            dataSource={cart.cartItems}
-            renderItem={(item) => (
-              <List.Item
-                actions={[
-                  <Button
-                    type="primary"
-                    danger
-                    onClick={() => handleRemoveFromCart(item.id)}
+        <Row gutter={[24, 24]}>
+          {/* Cart Items */}
+          <Col xs={24} lg={16}>
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 12,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                overflow: "hidden",
+              }}
+            >
+              {cart.cartItems.map((item, index) => (
+                <div key={item.id}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "16px 20px",
+                      gap: 16,
+                      opacity: updatingItems[item.id] ? 0.5 : 1,
+                      transition: "opacity 0.2s",
+                    }}
                   >
-                    Remove
-                  </Button>,
-                ]}
-              >
-                <List.Item.Meta
-                  title={item.product.name}
-                  description={`Price: ${item.product.price}đ | Quantity: ${item.quantity}`}
-                />
-                {/* <InputNumber
-                  min={1}
-                  defaultValue={item.quantity}
-                  onChange={(value) => handleQuantityChange(item.id, value)}
-                /> */}
-              </List.Item>
-            )}
-          />
-          <div style={{ marginTop: 16 }}>
-            <Row gutter={[16, 16]}>
-              <Col span={24}>
-                <Title level={3}>Total: {cart.totalPrice}đ</Title>
-              </Col>
-              <Col span={24}>
+                    {/* Product Image */}
+                    <div
+                      style={{
+                        width: 80,
+                        height: 80,
+                        flexShrink: 0,
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        background: "#f5f5f5",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {item.product.imageUrl?.[0] && (
+                        <img
+                          src={item.product.imageUrl[0]}
+                          alt={item.product.name}
+                          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Product Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Text strong style={{ fontSize: 15, display: "block" }}>
+                        {item.product.name}
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {item.product.category}
+                      </Text>
+                      <div style={{ marginTop: 4 }}>
+                        <Text style={{ color: "#c0392b", fontWeight: 600, fontSize: 15 }}>
+                          {formatCurrency(item.product.price)}
+                        </Text>
+                      </div>
+                    </div>
+
+                    {/* Quantity Selector */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <InputNumber
+                        min={1}
+                        max={item.product.stockQuantity}
+                        value={item.quantity}
+                        disabled={updatingItems[item.id]}
+                        onChange={(val) => handleQuantityChange(item, val)}
+                        style={{ width: 70 }}
+                        size="small"
+                      />
+                    </div>
+
+                    {/* Item Total */}
+                    <div style={{ textAlign: "right", minWidth: 90 }}>
+                      <Text strong style={{ color: "#333", fontSize: 15 }}>
+                        {formatCurrency(item.product.price * item.quantity)}
+                      </Text>
+                    </div>
+
+                    {/* Remove Button */}
+                    <Button
+                      type="text"
+                      danger
+                      icon={<FontAwesomeIcon icon={faTrash} />}
+                      disabled={updatingItems[item.id]}
+                      onClick={() => handleRemoveFromCart(item.id)}
+                    />
+                  </div>
+                  {index < cart.cartItems.length - 1 && (
+                    <Divider style={{ margin: 0 }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </Col>
+
+          {/* Order Summary */}
+          <Col xs={24} lg={8}>
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 12,
+                padding: "20px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                position: "sticky",
+                top: 16,
+              }}
+            >
+              <Title level={4} style={{ marginBottom: 16 }}>
+                Order Summary
+              </Title>
+
+              {/* Voucher Selector */}
+              <div style={{ marginBottom: 16 }}>
+                <Text strong style={{ display: "block", marginBottom: 8 }}>
+                  <FontAwesomeIcon icon={faTicket} style={{ marginRight: 6 }} />
+                  Apply Voucher
+                </Text>
                 <Select
                   placeholder="Select a voucher"
-                  style={{ width: "100%", marginBottom: "16px" }}
+                  style={{ width: "100%", marginBottom: 8 }}
                   onChange={setVoucherCode}
+                  allowClear
                 >
                   {vouchers.map((voucher) => (
                     <Option key={voucher.code} value={voucher.code}>
-                      {voucher.code} - Discount: {voucher.discountValue}đ, Min.
-                      Purchase: {voucher.minimumPurchase}đ, Usage left:{" "}
-                      {voucher.maxUsage - voucher.currentUsage} times
+                      <div>
+                        <Text strong>{voucher.code}</Text>
+                        <Text type="secondary" style={{ fontSize: 11, display: "block" }}>
+                          -{formatCurrency(voucher.discountValue)} | Min: {formatCurrency(voucher.minimumPurchase)} | Left: {voucher.maxUsage - voucher.currentUsage}
+                        </Text>
+                      </div>
                     </Option>
                   ))}
                 </Select>
-                <Button type="primary" onClick={handleApplyVoucher}>
-                  Apply Voucher
+                <Button
+                  type="default"
+                  block
+                  onClick={handleApplyVoucher}
+                  style={{ borderRadius: 6 }}
+                >
+                  Apply
                 </Button>
-              </Col>
-              <Col span={24}>
-                <CheckoutButton
-                  totalPrice={cart.totalPrice}
-                  voucherCode={voucherCode}
-                />
-              </Col>
-            </Row>
-          </div>
-        </>
+              </div>
+
+              <Divider />
+
+              {/* Price Breakdown */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text type="secondary">Subtotal</Text>
+                  <Text>{formatCurrency(originalTotal)}</Text>
+                </div>
+                {hasDiscount && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                    <Text type="secondary">
+                      Discount{" "}
+                      <Tag color="green" style={{ fontSize: 10 }}>
+                        {cart.voucherCode}
+                      </Tag>
+                    </Text>
+                    <Text style={{ color: "#52c41a" }}>
+                      -{formatCurrency(discountAmount)}
+                    </Text>
+                  </div>
+                )}
+                <Divider style={{ margin: "12px 0" }} />
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <Text strong style={{ fontSize: 16 }}>Total</Text>
+                  <Text strong style={{ fontSize: 18, color: "#c0392b" }}>
+                    {formatCurrency(cart.totalPrice)}
+                  </Text>
+                </div>
+              </div>
+
+              <CheckoutButton
+                totalPrice={cart.totalPrice}
+                voucherCode={voucherCode}
+              />
+            </div>
+          </Col>
+        </Row>
       ) : (
-        <Empty description="Your cart is empty" />
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 12,
+            padding: "60px 20px",
+            textAlign: "center",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          }}
+        >
+          <Empty description="Your cart is empty" />
+        </div>
       )}
     </div>
   );
