@@ -10,11 +10,11 @@ import {
   Space,
   Divider
 } from "antd";
-import { 
-  UserOutlined, 
-  LockOutlined, 
-  LoginOutlined, 
-  ArrowLeftOutlined 
+import {
+  UserOutlined,
+  LockOutlined,
+  LoginOutlined,
+  ArrowLeftOutlined
 } from "@ant-design/icons";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "./Hooks/useAuth";
@@ -22,7 +22,7 @@ import axios from "axios";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
-const LOGIN_URL = "http://localhost:8080/api/v1/auth/authenticate";
+const LOGIN_URL = `${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/authenticate`;
 
 const LoginPage = () => {
   const { setAuth } = useAuth();
@@ -34,7 +34,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (userRef.current) {
-        userRef.current.focus();
+      userRef.current.focus();
     }
   }, []);
 
@@ -94,16 +94,16 @@ const LoginPage = () => {
           bodyStyle={{ padding: "40px" }}
         >
           <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <div style={{ 
-                width: "80px", 
-                height: "80px", 
-                background: "rgba(255,255,255,0.1)", 
-                borderRadius: "20px", 
-                display: "inline-flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                marginBottom: "20px",
-                border: "1px solid rgba(255,255,255,0.1)"
+            <div style={{
+              width: "80px",
+              height: "80px",
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: "20px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: "20px",
+              border: "1px solid rgba(255,255,255,0.1)"
             }}>
               <LoginOutlined style={{ fontSize: "40px", color: "#fff" }} />
             </div>
@@ -124,15 +124,15 @@ const LoginPage = () => {
                 { type: "email", message: "Please enter a valid email!" },
               ]}
             >
-              <Input 
-                prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.7)" }} />} 
-                placeholder="Email Address" 
+              <Input
+                prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
+                placeholder="Email Address"
                 ref={userRef}
-                style={{ 
-                    background: "rgba(255,255,255,0.05)", 
-                    border: "1px solid rgba(255,255,255,0.1)", 
-                    color: "#fff",
-                    borderRadius: "12px"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  borderRadius: "12px"
                 }}
               />
             </Form.Item>
@@ -145,11 +145,11 @@ const LoginPage = () => {
               <Input.Password
                 prefix={<LockOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
                 placeholder="Password"
-                style={{ 
-                    background: "rgba(255,255,255,0.05)", 
-                    border: "1px solid rgba(255,255,255,0.1)", 
-                    color: "#fff",
-                    borderRadius: "12px"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  borderRadius: "12px"
                 }}
               />
             </Form.Item>
@@ -159,19 +159,19 @@ const LoginPage = () => {
             </div>
 
             <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                block 
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
                 loading={loading}
-                style={{ 
-                    height: "50px", 
-                    borderRadius: "12px", 
-                    background: "#fff", 
-                    color: "#2c3e50", 
-                    border: "none",
-                    fontWeight: "700",
-                    fontSize: "16px"
+                style={{
+                  height: "50px",
+                  borderRadius: "12px",
+                  background: "#fff",
+                  color: "#2c3e50",
+                  border: "none",
+                  fontWeight: "700",
+                  fontSize: "16px"
                 }}
               >
                 Sign In
@@ -192,14 +192,14 @@ const LoginPage = () => {
 
         {/* Home link */}
         <div style={{ position: "fixed", top: "40px", left: "40px" }}>
-            <Button 
-                type="text" 
-                onClick={() => navigate("/")} 
-                icon={<ArrowLeftOutlined />} 
-                style={{ color: "#fff", display: "flex", alignItems: "center" }}
-            >
-                Back to Home
-            </Button>
+          <Button
+            type="text"
+            onClick={() => navigate("/")}
+            icon={<ArrowLeftOutlined />}
+            style={{ color: "#fff", display: "flex", alignItems: "center" }}
+          >
+            Back to Home
+          </Button>
         </div>
       </Content>
     </Layout>

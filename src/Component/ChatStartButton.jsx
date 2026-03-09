@@ -11,7 +11,7 @@ const ChatStartButton = ({ productId, userId, staffId }) => {
   const startChatSession = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/v1/chat/start",
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/start`,
         {
           productId,
           userId,

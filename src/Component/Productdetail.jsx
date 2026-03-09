@@ -32,17 +32,17 @@ const ProductDetail = () => {
       setLoading(true);
       try {
         const productResponse = await axios.get(
-          `http://localhost:8080/api/v1/product/${id}`
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/product/${id}`
         );
         setProductData(productResponse.data);
 
         const feedbackResponse = await axios.get(
-          `http://localhost:8080/api/v1/feedback/product/${id}`
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/feedback/product/${id}`
         );
         setFeedbackData(feedbackResponse.data);
 
         const staffResponse = await axios.get(
-          `http://localhost:8080/api/v1/user/staff`
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/user/staff`
         );
         setStaffList(staffResponse.data);
       } catch (error) {
@@ -62,7 +62,7 @@ const ProductDetail = () => {
           quantity: quantity,
         };
         await axios.post(
-          `http://localhost:8080/api/v1/cart/${auth.id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/${auth.id}`,
           cartItem,
           {
             headers: {

@@ -39,7 +39,7 @@ const UserDetail = () => {
       try {
         setLoading(true);
         const userResponse = await axios.get(
-          `http://localhost:8080/api/v1/user/${id}`
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/user/${id}`
         );
         setUserData(userResponse.data);
         setLoading(false);
@@ -127,7 +127,7 @@ const UserDetail = () => {
         >
           <Title level={3}>Welcome to Watch Hub Profile</Title>
           <Text style={{ fontSize: "16px" }}>
-            This is the official profile page for {userData.name}. 
+            This is the official profile page for {userData.name}.
             As a valued member of our community, you can manage your orders and profile settings from your personal dashboard.
           </Text>
         </Col>

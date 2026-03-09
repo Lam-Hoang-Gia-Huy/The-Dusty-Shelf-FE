@@ -17,7 +17,7 @@ const UserManagement = () => {
   }, []);
 
   const fetchUsers = async () => {
-    const response = await axios.get("http://localhost:8080/api/v1/user", {
+    const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/user`, {
       headers: {
         Authorization: `Bearer ${auth.accessToken}`,
       },
@@ -35,7 +35,7 @@ const UserManagement = () => {
         password: values.password,
         avatarUrl: "https://res.cloudinary.com/dfeuv0ynf/image/upload/v1718868313/ytqqm8d9pavipqjjyfwi.jpg",
       };
-      await axios.post("http://localhost:8080/api/v1/auth/register-staff", payload, {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/register-staff`, payload, {
         headers: {
           Authorization: `Bearer ${auth.accessToken}`,
         },
@@ -52,7 +52,7 @@ const UserManagement = () => {
   const deactivateUser = async (id) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/user/deactivate/${id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/user/deactivate/${id}`,
         {},
         {
           headers: {
@@ -70,7 +70,7 @@ const UserManagement = () => {
   const activateUser = async (id) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/user/activate/${id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/user/activate/${id}`,
         {},
         {
           headers: {

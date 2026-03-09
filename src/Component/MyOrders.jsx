@@ -28,7 +28,7 @@ const MyOrders = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/v1/orders/user/${auth.id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/orders/user/${auth.id}`,
           {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,

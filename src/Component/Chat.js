@@ -31,7 +31,7 @@ const Chat = ({ onNewMessage }) => {
     const fetchSessions = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/v1/chat/sessions/${auth.id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/sessions/${auth.id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -46,7 +46,7 @@ const Chat = ({ onNewMessage }) => {
     };
 
     const connectWebSocket = () => {
-      const socket = new SockJS("http://localhost:8080/ws");
+      const socket = new SockJS(`${process.env.REACT_APP_API_BASE_URL}/ws`);
       const client = new Client({
         webSocketFactory: () => socket,
         debug: (str) => {
@@ -87,7 +87,7 @@ const Chat = ({ onNewMessage }) => {
       const fetchMessages = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:8080/api/v1/chat/${selectedSession.id}/messages`,
+            `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/${selectedSession.id}/messages`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -115,7 +115,7 @@ const Chat = ({ onNewMessage }) => {
       console.log("Sending payload:", payload);
 
       const response = await axios.post(
-        `http://localhost:8080/api/v1/chat/${selectedSession.id}/messages`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/${selectedSession.id}/messages`,
         payload,
         {
           headers: {

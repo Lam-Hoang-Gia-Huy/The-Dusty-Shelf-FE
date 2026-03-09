@@ -11,7 +11,7 @@ const CheckoutButton = ({ totalPrice, voucherCode }) => {
   const handleCheckout = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/v1/payment/create-payment-url",
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/payment/create-payment-url`,
         {
           userId: auth.id,
           totalPrice,

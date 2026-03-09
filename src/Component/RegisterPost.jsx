@@ -58,7 +58,7 @@ const RegisterPost = () => {
     });
     try {
       const response = await fetch(
-        `http://localhost:8080/api/v1/product/${productId}/images`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/product/${productId}/images`,
         {
           method: "POST",
           body: formData,
@@ -84,7 +84,7 @@ const RegisterPost = () => {
       // Include user ID in the request body
       const body = { ...values, userId: auth.id };
 
-      const response = await fetch(`http://localhost:8080/api/v1/product`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/v1/product`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

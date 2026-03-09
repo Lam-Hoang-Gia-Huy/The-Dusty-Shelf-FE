@@ -13,7 +13,7 @@ const VoucherComponent = () => {
 
   const fetchVouchers = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/v1/voucher", {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/voucher`, {
         headers: {
           Authorization: `Bearer ${auth.accessToken}`,
         },
@@ -27,7 +27,7 @@ const VoucherComponent = () => {
   const deactivateVoucher = async (id) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/voucher/deactivate/${id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/voucher/deactivate/${id}`,
         {},
         {
           headers: {
@@ -46,7 +46,7 @@ const VoucherComponent = () => {
   const activateVoucher = async (id) => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/voucher/approve/${id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/voucher/approve/${id}`,
         {},
         {
           headers: {

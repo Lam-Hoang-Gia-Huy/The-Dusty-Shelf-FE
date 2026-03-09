@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Layout, Row, Col, Form, Input, Button, message, Typography, Card, Space, Divider } from "antd";
-import { 
-  UserOutlined, 
-  MailOutlined, 
-  LockOutlined, 
-  ArrowLeftOutlined, 
-  UserAddOutlined 
+import {
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
+  ArrowLeftOutlined,
+  UserAddOutlined
 } from "@ant-design/icons";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
@@ -27,7 +27,7 @@ const Register = () => {
     };
 
     try {
-      await axios.post(`http://localhost:8080/api/v1/auth/register`, payload);
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/register`, payload);
       message.success("Registered successfully! Please login.");
       navigate("/login");
     } catch (error) {
@@ -55,16 +55,16 @@ const Register = () => {
           bodyStyle={{ padding: "40px 50px" }}
         >
           <div style={{ textAlign: "center", marginBottom: "35px" }}>
-            <div style={{ 
-                width: "70px", 
-                height: "70px", 
-                background: "rgba(255,255,255,0.1)", 
-                borderRadius: "20px", 
-                display: "inline-flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                marginBottom: "20px",
-                border: "1px solid rgba(255,255,255,0.1)"
+            <div style={{
+              width: "70px",
+              height: "70px",
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: "20px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: "20px",
+              border: "1px solid rgba(255,255,255,0.1)"
             }}>
               <UserAddOutlined style={{ fontSize: "35px", color: "#fff" }} />
             </div>
@@ -78,14 +78,14 @@ const Register = () => {
               rules={[{ required: true, message: "Please input your username!" }]}
               style={{ marginBottom: "16px" }}
             >
-              <Input 
-                prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.7)" }} />} 
-                placeholder="Username" 
-                style={{ 
-                    background: "rgba(255,255,255,0.05)", 
-                    border: "1px solid rgba(255,255,255,0.1)", 
-                    color: "#fff",
-                    borderRadius: "12px"
+              <Input
+                prefix={<UserOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
+                placeholder="Username"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  borderRadius: "12px"
                 }}
               />
             </Form.Item>
@@ -98,14 +98,14 @@ const Register = () => {
               ]}
               style={{ marginBottom: "16px" }}
             >
-              <Input 
-                prefix={<MailOutlined style={{ color: "rgba(255,255,255,0.7)" }} />} 
-                placeholder="Email Address" 
-                style={{ 
-                    background: "rgba(255,255,255,0.05)", 
-                    border: "1px solid rgba(255,255,255,0.1)", 
-                    color: "#fff",
-                    borderRadius: "12px"
+              <Input
+                prefix={<MailOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
+                placeholder="Email Address"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  borderRadius: "12px"
                 }}
               />
             </Form.Item>
@@ -120,11 +120,11 @@ const Register = () => {
                   <Input.Password
                     prefix={<LockOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
                     placeholder="Password"
-                    style={{ 
-                        background: "rgba(255,255,255,0.05)", 
-                        border: "1px solid rgba(255,255,255,0.1)", 
-                        color: "#fff",
-                        borderRadius: "12px"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      borderRadius: "12px"
                     }}
                   />
                 </Form.Item>
@@ -149,11 +149,11 @@ const Register = () => {
                   <Input.Password
                     prefix={<LockOutlined style={{ color: "rgba(255,255,255,0.7)" }} />}
                     placeholder="Confirm"
-                    style={{ 
-                        background: "rgba(255,255,255,0.05)", 
-                        border: "1px solid rgba(255,255,255,0.1)", 
-                        color: "#fff",
-                        borderRadius: "12px"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      borderRadius: "12px"
                     }}
                   />
                 </Form.Item>
@@ -162,15 +162,15 @@ const Register = () => {
 
             <Form.Item>
               <Button type="primary" htmlType="submit" block loading={loading}
-                style={{ 
-                    height: "55px", 
-                    borderRadius: "15px", 
-                    background: "#fff", 
-                    color: "#2c3e50", 
-                    border: "none",
-                    fontWeight: "800",
-                    fontSize: "17px",
-                    boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                style={{
+                  height: "55px",
+                  borderRadius: "15px",
+                  background: "#fff",
+                  color: "#2c3e50",
+                  border: "none",
+                  fontWeight: "800",
+                  fontSize: "17px",
+                  boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
                 }}
               >
                 Create Account
@@ -187,14 +187,14 @@ const Register = () => {
         </Card>
 
         <div style={{ position: "fixed", top: "40px", left: "40px" }}>
-            <Button 
-                type="text" 
-                onClick={() => navigate("/")} 
-                icon={<ArrowLeftOutlined />} 
-                style={{ color: "#fff", display: "flex", alignItems: "center" }}
-            >
-                Back to Home
-            </Button>
+          <Button
+            type="text"
+            onClick={() => navigate("/")}
+            icon={<ArrowLeftOutlined />}
+            style={{ color: "#fff", display: "flex", alignItems: "center" }}
+          >
+            Back to Home
+          </Button>
         </div>
       </Content>
     </Layout>

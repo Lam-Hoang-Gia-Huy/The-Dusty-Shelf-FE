@@ -19,7 +19,7 @@ const CreateFeedback = () => {
     const fetchFeedback = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/v1/feedback/${orderItemId}`, // Adjust URL
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/feedback/${orderItemId}`, // Adjust URL
           {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
@@ -46,7 +46,7 @@ const CreateFeedback = () => {
     try {
       if (feedback) {
         await axios.put(
-          `http://localhost:8080/api/v1/feedback/${feedback.id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/feedback/${feedback.id}`,
           {
             productId,
             orderItemId,
@@ -63,7 +63,7 @@ const CreateFeedback = () => {
         message.success("Feedback updated successfully!");
       } else {
         await axios.post(
-          "http://localhost:8080/api/v1/feedback",
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/feedback`,
           {
             productId,
             comment: values.comment,

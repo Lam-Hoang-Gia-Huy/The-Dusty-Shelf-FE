@@ -23,7 +23,7 @@ const ItemList = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/api/v1/product?page=${page - 1}&size=${size}`
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/product?page=${page - 1}&size=${size}`
       );
       const productsData = response.data.content;
       const filteredProducts =

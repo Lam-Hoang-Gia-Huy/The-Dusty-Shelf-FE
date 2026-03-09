@@ -39,12 +39,12 @@ const Revenue = () => {
   };
 
   const handleYearlyRevenue = () => {
-    fetchRevenueData("http://localhost:8080/api/v1/revenue/yearly");
+    fetchRevenueData(`${process.env.REACT_APP_API_BASE_URL}/api/v1/revenue/yearly`);
   };
 
   const handleMonthlyRevenue = () => {
     if (year) {
-      fetchRevenueData(`http://localhost:8080/api/v1/revenue/monthly/${year}`);
+      fetchRevenueData(`${process.env.REACT_APP_API_BASE_URL}/api/v1/revenue/monthly/${year}`);
     } else {
       message.error("Please select a year");
     }
@@ -55,7 +55,7 @@ const Revenue = () => {
       const startDate = dates[0].format("YYYY-MM-DD");
       const endDate = dates[1].format("YYYY-MM-DD");
       fetchRevenueData(
-        `http://localhost:8080/api/v1/revenue/range?startDate=${startDate}&endDate=${endDate}`
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/revenue/range?startDate=${startDate}&endDate=${endDate}`
       );
     } else {
       message.error("Please select a valid date range");

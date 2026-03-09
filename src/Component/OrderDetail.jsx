@@ -30,7 +30,7 @@ const OrderDetail = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/v1/orders/${orderId}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/orders/${orderId}`,
           {
             headers: {
               Authorization: `Bearer ${auth.accessToken}`,
@@ -53,7 +53,7 @@ const OrderDetail = () => {
       for (const item of orderItems) {
         try {
           const response = await axios.get(
-            `http://localhost:8080/api/v1/feedback/${item.id}`, // Adjust URL
+            `${process.env.REACT_APP_API_BASE_URL}/api/v1/feedback/${item.id}`, // Adjust URL
             {
               headers: {
                 Authorization: `Bearer ${auth.accessToken}`,

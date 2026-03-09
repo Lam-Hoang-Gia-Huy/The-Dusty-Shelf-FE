@@ -24,7 +24,7 @@ const PaymentReturn = () => {
         // Step 1: Verify payment with Backend
         // Backend will ALSO: update stock, increment voucher usage, and CREATE the Order
         const verifyResponse = await axios.post(
-          `http://localhost:8080/api/v1/payment/verify-payment/${auth.id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/payment/verify-payment/${auth.id}`,
           { ...query, vnp_SecureHash: secureHash },
           {
             headers: {
@@ -41,7 +41,7 @@ const PaymentReturn = () => {
 
           // Step 2: Clear the cart (order already created by Backend)
           await axios.post(
-            `http://localhost:8080/api/v1/cart/clear/${auth.id}`,
+            `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/clear/${auth.id}`,
             {},
             {
               headers: {

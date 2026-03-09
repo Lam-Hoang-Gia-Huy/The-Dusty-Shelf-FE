@@ -39,7 +39,7 @@ const Cart = () => {
   const fetchCart = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/v1/cart/${auth.id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/${auth.id}`,
         { headers: { Authorization: `Bearer ${auth.accessToken}` } }
       );
       if (response.status === 200) setCart(response.data);
@@ -54,7 +54,7 @@ const Cart = () => {
       await fetchCart();
       try {
         const res = await axios.get(
-          `http://localhost:8080/api/v1/voucher/available`,
+          `${process.env.REACT_APP_API_BASE_URL}/api/v1/voucher/available`,
           { headers: { Authorization: `Bearer ${auth.accessToken}` } }
         );
         if (res.status === 200) setVouchers(res.data);
@@ -70,7 +70,7 @@ const Cart = () => {
     setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
     try {
       await axios.delete(
-        `http://localhost:8080/api/v1/cart/${auth.id}/${cartItemId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/${auth.id}/${cartItemId}`,
         { headers: { Authorization: `Bearer ${auth.accessToken}` } }
       );
       await fetchCart();
@@ -87,7 +87,7 @@ const Cart = () => {
     setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/v1/cart/${auth.id}/item/${cartItemId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/${auth.id}/item/${cartItemId}`,
         null,
         {
           params: { quantity: newQuantity },
@@ -109,7 +109,7 @@ const Cart = () => {
     }
     try {
       const response = await axios.put(
-        `http://localhost:8080/api/v1/cart/${auth.id}/apply-voucher`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/${auth.id}/apply-voucher`,
         null,
         {
           params: { voucherCode },

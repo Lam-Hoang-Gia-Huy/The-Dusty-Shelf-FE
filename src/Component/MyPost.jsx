@@ -26,7 +26,7 @@ const MyPost = () => {
   useEffect(() => {
     const fetchWatches = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/v1/watch");
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/watch`);
         const watchesData = response.data;
         const sellerWatch = watchesData.filter(
           (watch) => watch.sellerId == auth.id
@@ -101,7 +101,7 @@ const MyPost = () => {
             <Card
               hoverable
               style={{ backgroundColor: "#e3cbcb" }}
-              // onClick={() => handleItemClick(watch.id)}
+            // onClick={() => handleItemClick(watch.id)}
             >
               <Row gutter={16} align="middle">
                 <Col span={8}>
@@ -136,8 +136,8 @@ const MyPost = () => {
                           {selectedSection === "sold"
                             ? "Sold"
                             : selectedSection === "onSell"
-                            ? "On Sell"
-                            : "Unappraised"}
+                              ? "On Sell"
+                              : "Unappraised"}
                         </Tag>
                       </>
                     }

@@ -26,7 +26,7 @@ const VoucherForm = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/v1/voucher",
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/voucher`,
         {
           ...values,
           status: false, // Set the status to false when created
