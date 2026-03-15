@@ -14,8 +14,8 @@ import {
   MessageInput,
   MessageSeparator,
 } from "@chatscope/chat-ui-kit-react";
-import SockJS from "sockjs-client";
-import { Client } from "@stomp/stompjs";
+import { db } from "../firebase";
+import { collection, query, where, onSnapshot, addDoc } from "firebase/firestore";
 import useAuth from "./Hooks/useAuth";
 import { ExpansionPanel } from "@chatscope/chat-ui-kit-react";
 
@@ -25,7 +25,7 @@ const Chat = ({ onNewMessage }) => {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const { auth } = useAuth();
-  const stompClient = useRef(null);
+
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -45,96 +45,56 @@ const Chat = ({ onNewMessage }) => {
       }
     };
 
-    const connectWebSocket = () => {
-      const socket = new SockJS(`${process.env.REACT_APP_API_BASE_URL}/ws`);
-      const client = new Client({
-        webSocketFactory: () => socket,
-        debug: (str) => {
-          console.log(str);
-        },
-      });
-
-      client.onConnect = () => {
-        console.log("Connected to WebSocket");
-        client.subscribe("/topic/public", (message) => {
-          const newMessageData = JSON.parse(message.body);
-          setMessages((prevMessages) => {
-            if (!prevMessages.some((msg) => msg.id === newMessageData.id)) {
-              return [...prevMessages, newMessageData];
-            }
-            return prevMessages;
-          });
-          onNewMessage(newMessageData);
-        });
-      };
-
-      client.activate();
-      stompClient.current = client;
-    };
-
     fetchSessions();
-    connectWebSocket();
-
-    return () => {
-      if (stompClient.current) {
-        stompClient.current.deactivate();
-      }
-    };
-  }, [auth.accessToken, auth.id, onNewMessage]);
+  }, [auth.accessToken, auth.id]);
 
   useEffect(() => {
     if (selectedSession) {
-      const fetchMessages = async () => {
-        try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/${selectedSession.id}/messages`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${auth.accessToken}`,
-              },
-            }
-          );
-          setMessages(response.data);
-        } catch (error) {
-          console.error("Error fetching messages:", error);
-        }
-      };
+      const q = query(
+        collection(db, "chatMessages"),
+        where("sessionId", "==", selectedSession.id)
+      );
 
-      fetchMessages();
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const firestoreMessages = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Sort in memory bypassing the need for a composite index
+        firestoreMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+        setMessages(firestoreMessages);
+
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            const addedMsg = change.doc.data();
+            if (onNewMessage && addedMsg.senderId !== auth.id) {
+              onNewMessage(addedMsg);
+            }
+          }
+        });
+      });
+
+      return () => unsubscribe();
     }
-  }, [selectedSession, auth.accessToken]);
+  }, [selectedSession, onNewMessage, auth.id]);
 
   const sendMessage = async () => {
     try {
+      if (!newMessage.trim()) return;
+
       const payload = {
-        message: newMessage,
+        sessionId: selectedSession.id,
         senderId: auth.id,
+        message: newMessage,
+        timestamp: Date.now(),
       };
 
-      console.log("Sending payload:", payload);
-
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/${selectedSession.id}/messages`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
-        }
-      );
-
-      console.log("Received response:", response.data);
-
-      stompClient.current.publish({
-        destination: "/app/chat.sendMessage",
-        body: JSON.stringify(response.data),
-      });
-
+      await addDoc(collection(db, "chatMessages"), payload);
       setNewMessage("");
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message to Firestore:", error);
     }
   };
 
