@@ -111,6 +111,18 @@ const AiChatBox = () => {
                                 onSend={handleSend}
                                 attachButton={false}
                             />
+
+                            <div style={styles.suggestionsContainer}>
+                                {["Danh mục sách", "Sách mới nhất", "Tìm sách dưới 200k"].map((q, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleSend(q)}
+                                        style={styles.suggestionButton}
+                                    >
+                                        {q}
+                                    </button>
+                                ))}
+                            </div>
                         </ChatContainer>
                     </MainContainer>
                 </div>
@@ -151,6 +163,25 @@ const styles = {
         fontSize: '16px',
         cursor: 'pointer',
         color: '#555'
+    },
+    suggestionsContainer: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        padding: '10px',
+        backgroundColor: '#f9f9f9',
+        borderTop: '1px solid #eee'
+    },
+    suggestionButton: {
+        backgroundColor: 'white',
+        border: '1px solid #007bff',
+        color: '#007bff',
+        borderRadius: '15px',
+        padding: '5px 12px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        whiteSpace: 'nowrap'
     }
 };
 

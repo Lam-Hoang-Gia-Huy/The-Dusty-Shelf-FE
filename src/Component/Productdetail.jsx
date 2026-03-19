@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Carousel, message, List, Avatar, Rate, Select, InputNumber } from "antd";
 import axios from "axios";
+import axiosInstance from "./Config/axiosConfig";
 import { Layout, Col, Row, Button, Typography } from "antd";
 import moment from "moment";
 import Loading from "./Loading";
@@ -26,32 +27,30 @@ const ProductDetail = () => {
   const { auth } = useAuth();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
+  const carouselRef = useRef(null);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const productResponse = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/product/${id}`
-        );
-        setProductData(productResponse.data);
+        const productResponse = await axiosInstance.get(`/api/v1/product/${id}`);
+        if (isMounted) setProductData(productResponse.data);
 
-        const feedbackResponse = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/feedback/product/${id}`
-        );
-        setFeedbackData(feedbackResponse.data);
+        const feedbackResponse = await axiosInstance.get(`/api/v1/feedback/product/${id}`);
+        if (isMounted) setFeedbackData(feedbackResponse.data);
 
-        const staffResponse = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/v1/user/staff`
-        );
-        setStaffList(staffResponse.data);
+        const staffResponse = await axiosInstance.get(`/api/v1/user/staff`);
+        if (isMounted) setStaffList(staffResponse.data);
       } catch (error) {
         console.error("Error fetching data: ", error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchData();
+    return () => { isMounted = false; };
   }, [id]);
 
   const addToCart = async () => {
@@ -105,91 +104,108 @@ const ProductDetail = () => {
   return (
     <Content
       style={{
-        padding: "20px 400px",
+        padding: "40px min(10%, 150px)",
         flexGrow: 1,
         display: "flex",
         flexDirection: "column",
+        backgroundColor: "#f9f9f9",
       }}
     >
       <Row
+        gutter={[32, 32]}
         style={{
-          backgroundColor: "#f0f0f0",
-          padding: "20px",
-          borderRadius: "8px",
-          boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+          backgroundColor: "#fff",
+          padding: "30px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
         }}
       >
         <Col span={12}>
-          <Carousel arrows>
-            {productData.imageUrl?.map((imageUrl) => (
-              <div key={imageUrl}>
+          <Carousel arrows ref={carouselRef} afterChange={(index) => setActiveImage(index)}>
+            {productData.imageUrl?.map((imageUrl, index) => (
+              <div key={index}>
                 <PhotoProvider>
                   <PhotoView src={imageUrl}>
                     <img
                       src={imageUrl}
                       alt={productData.name}
                       className="contentStyle"
-                      style={{ borderRadius: "8px" }}
+                      style={{ borderRadius: "8px", cursor: 'zoom-in' }}
                     />
                   </PhotoView>
                 </PhotoProvider>
               </div>
             ))}
           </Carousel>
+          <div style={{ marginTop: '20px', display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '10px' }}>
+            {productData.imageUrl?.map((imageUrl, index) => (
+              <div
+                key={index}
+                onClick={() => carouselRef.current.goTo(index)}
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: activeImage === index ? '2px solid #1890ff' : '2px solid transparent',
+                  transition: 'all 0.3s ease',
+                  flexShrink: 0
+                }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`thumbnail-${index}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
         </Col>
-        <Col style={{ marginLeft: "20px", color: "#333" }} span={11}>
-          <h1 style={{ color: "#333", fontSize: "24px", marginBottom: "10px" }}>
+        <Col xs={24} md={12} style={{ color: "#333" }}>
+          <h1 style={{ color: "#222", fontSize: "28px", fontWeight: "700", marginBottom: "16px", lineHeight: "1.2" }}>
             {productData.name}
           </h1>
-          <div style={{ marginBottom: "10px" }}>
-            <Text strong style={{ fontSize: "16px", color: "#666" }}>
-              Price:{" "}
-            </Text>
-            <Text style={{ fontSize: "16px", color: "#ff4d4f" }}>
+          <div style={{ marginBottom: "15px", display: 'flex', alignItems: 'center' }}>
+            <Text strong style={{ fontSize: "16px", color: "#666", width: "120px" }}>Price: </Text>
+            <Text style={{ fontSize: "20px", color: "#ff4d4f", fontWeight: "600" }}>
               {productData.price?.toLocaleString()} đ
             </Text>
           </div>
-          <div style={{ marginBottom: "10px" }}>
-            <Text strong style={{ fontSize: "16px", color: "#666" }}>
-              Category:{" "}
-            </Text>
-            <Text style={{ fontSize: "16px", color: "#333" }}>
-              {productData.category}
+          <div style={{ marginBottom: "12px", display: 'flex', alignItems: 'center' }}>
+            <Text strong style={{ fontSize: "16px", color: "#666", width: "120px" }}>Author: </Text>
+            <Text style={{ fontSize: "16px", color: "#333", fontStyle: "italic" }}>
+              {productData.author || "Unknown"}
             </Text>
           </div>
-          <div style={{ marginBottom: "10px" }}>
-            <Text strong style={{ fontSize: "16px", color: "#666" }}>
-              Quantity:{" "}
-            </Text>
-            <Text style={{ fontSize: "16px", color: "#333" }}>
-              {productData.stockQuantity}
-            </Text>
+          <div style={{ marginBottom: "12px", display: 'flex', alignItems: 'center' }}>
+            <Text strong style={{ fontSize: "16px", color: "#666", width: "120px" }}>Category: </Text>
+            <Text style={{ fontSize: "16px", color: "#333" }}>{productData.category}</Text>
           </div>
-          <div style={{ marginBottom: "10px" }}>
-            <Text strong style={{ fontSize: "16px", color: "#666" }}>
-              Posted since:{" "}
-            </Text>
-            <Text style={{ fontSize: "16px", color: "#333" }}>
-              {moment(productData.createdDate).fromNow()}
-            </Text>
+          <div style={{ marginBottom: "12px", display: 'flex', alignItems: 'center' }}>
+            <Text strong style={{ fontSize: "16px", color: "#666", width: "120px" }}>Stock: </Text>
+            <Text style={{ fontSize: "16px", color: "#333" }}>{productData.stockQuantity} units</Text>
           </div>
-          <div style={{ marginBottom: "10px" }}>
-            <Text strong style={{ fontSize: "16px", color: "#666" }}>
-              Rating:{" "}
-            </Text>
-            <Rate disabled allowHalf value={productData.averageScore} />
+          <div style={{ marginBottom: "12px", display: 'flex', alignItems: 'center' }}>
+            <Text strong style={{ fontSize: "16px", color: "#666", width: "120px" }}>Posted since: </Text>
+            <Text style={{ fontSize: "16px", color: "#333" }}>{moment(productData.createdDate).fromNow()}</Text>
+          </div>
+          <div style={{ marginBottom: "20px", display: 'flex', alignItems: 'center' }}>
+            <Text strong style={{ fontSize: "16px", color: "#666", width: "120px" }}>Rating: </Text>
+            <Rate disabled allowHalf value={productData.averageScore} style={{ fontSize: "14px" }} />
           </div>
 
           {auth && auth.role !== "ADMIN" && auth.role !== "STAFF" && (
-            <>
+            <div style={{ marginBottom: "24px", padding: "15px", backgroundColor: "#f0f5ff", borderRadius: "8px" }}>
+              <Text strong style={{ display: 'block', marginBottom: '8px' }}>Chat with Store Support:</Text>
               <Select
-                placeholder="Select a staff member"
+                placeholder="Select a staff member to chat"
                 onChange={(value) => setSelectedStaffId(value)}
-                style={{ width: "100%", marginBottom: "10px" }}
+                style={{ width: "100%", marginBottom: "12px" }}
               >
                 {staffList.map((staff) => (
                   <Option key={staff.id} value={staff.id}>
-                    {staff.name}
+                    {staff.name} ({staff.email})
                   </Option>
                 ))}
               </Select>
@@ -198,42 +214,52 @@ const ProductDetail = () => {
                 userId={auth.id}
                 staffId={selectedStaffId}
               />
-            </>
+            </div>
           )}
           {auth && auth.role == "ADMIN" && (
-            <Button
-              type="primary"
-              onClick={() => navigate(`/product/update/${productData.id}`)}
-            >
-              Update this product
-            </Button>
+            <div style={{ marginBottom: "20px" }}>
+              <Button
+                type="primary"
+                size="large"
+                style={{ borderRadius: '6px' }}
+                onClick={() => navigate(`/product/update/${productData.id}`)}
+              >
+                Update this product
+              </Button>
+            </div>
           )}
 
           {showAddToCartButton &&
             auth &&
             auth.role !== "ADMIN" &&
             auth.role !== "STAFF" && (
-              <div style={{ marginTop: "10px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
-                  <Text strong style={{ fontSize: "16px", color: "#666" }}>Quantity:</Text>
+              <div style={{ marginTop: "20px", padding: "20px", borderTop: "1px solid #eee" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+                  <Text strong style={{ fontSize: "16px", color: "#333" }}>Purchase quantity:</Text>
                   <InputNumber
                     min={1}
                     max={productData.stockQuantity}
                     value={quantity}
                     onChange={(val) => setQuantity(val || 1)}
-                    style={{ width: "80px" }}
+                    style={{ width: "100px", borderRadius: '4px' }}
                   />
-                  <Text type="secondary" style={{ fontSize: "12px" }}>({productData.stockQuantity} in stock)</Text>
+                  <Text type="secondary" style={{ fontSize: "14px" }}>Available: {productData.stockQuantity}</Text>
                 </div>
                 <Button
                   type="primary"
+                  size="large"
+                  block
                   style={{
                     background: "#ff4d4f",
                     borderColor: "#ff4d4f",
+                    height: "50px",
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    borderRadius: "8px"
                   }}
                   onClick={addToCart}
                 >
-                  Add to Cart <FontAwesomeIcon size="lg" icon={faCartShopping} />
+                  Add to Cart <FontAwesomeIcon style={{ marginLeft: '10px' }} icon={faCartShopping} />
                 </Button>
               </div>
             )}
@@ -241,7 +267,7 @@ const ProductDetail = () => {
       </Row>
 
       <div
-        className="watch-description"
+        className="book-description"
         style={{
           marginTop: "20px",
           padding: "20px",

@@ -15,7 +15,7 @@ const MyPost = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const [watches, setWatches] = useState({
+  const [books, setBooks] = useState({
     unappraised: [],
     sold: [],
     onSell: [],
@@ -24,35 +24,35 @@ const MyPost = () => {
   const { auth } = useAuth();
 
   useEffect(() => {
-    const fetchWatches = async () => {
+    const fetchBooks = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/watch`);
-        const watchesData = response.data;
-        const sellerWatch = watchesData.filter(
-          (watch) => watch.sellerId == auth.id
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/product`);
+        const booksData = response.data;
+        const sellerBooks = booksData.filter(
+          (book) => book.sellerId == auth.id
         );
-        const categorizedWatches = {
-          unappraised: sellerWatch.filter(
-            (watch) => watch.status === true && watch.appraisalId === null
+        const categorizedBooks = {
+          unappraised: sellerBooks.filter(
+            (book) => book.status === true && book.appraisalId === null
           ),
-          sold: sellerWatch.filter(
-            (watch) => watch.status === false && watch.paid === true
+          sold: sellerBooks.filter(
+            (book) => book.status === false && book.paid === true
           ),
-          onSell: sellerWatch.filter(
-            (watch) =>
-              watch.status === true &&
-              watch.appraisalId !== null &&
-              watch.paid === false
+          onSell: sellerBooks.filter(
+            (book) =>
+              book.status === true &&
+              book.appraisalId !== null &&
+              book.paid === false
           ),
         };
 
-        setWatches(categorizedWatches);
+        setBooks(categorizedBooks);
       } catch (error) {
-        console.error("Error fetching watches", error);
+        console.error("Error fetching books", error);
       }
     };
 
-    fetchWatches();
+    fetchBooks();
   }, [auth.id]);
 
   const handleMenuClick = (e) => {
@@ -77,9 +77,9 @@ const MyPost = () => {
     },
   ];
 
-  const renderWatches = () => {
-    const sectionWatches = watches[selectedSection] || [];
-    if (sectionWatches.length === 0) {
+  const renderBooks = () => {
+    const sectionBooks = books[selectedSection] || [];
+    if (sectionBooks.length === 0) {
       return (
         <div
           style={{
@@ -89,25 +89,24 @@ const MyPost = () => {
             minHeight: "280px",
           }}
         >
-          <Empty description={`No ${selectedSection} watches available`} />
+          <Empty description={`No ${selectedSection} books available`} />
         </div>
       );
     }
 
     return (
       <Row gutter={[16, 16]}>
-        {sectionWatches.map((watch) => (
-          <Col key={watch.id} span={24}>
+        {sectionBooks.map((book) => (
+          <Col key={book.id} span={24}>
             <Card
               hoverable
               style={{ backgroundColor: "#e3cbcb" }}
-            // onClick={() => handleItemClick(watch.id)}
             >
               <Row gutter={16} align="middle">
                 <Col span={8}>
                   <img
-                    alt={watch.name}
-                    src={watch.imageUrl[0]}
+                    alt={book.name}
+                    src={book.imageUrl[0]}
                     style={{
                       width: "100%",
                       maxHeight: "130px",
@@ -117,19 +116,19 @@ const MyPost = () => {
                 </Col>
                 <Col span={16}>
                   <Card.Meta
-                    title={watch.name}
+                    title={book.name}
                     description={
                       <>
-                        <p>Brand: {watch.brand}</p>
-                        <p>Description: {watch.description}</p>
+                        <p>Author: {book.author}</p>
+                        <p>Description: {book.description}</p>
                         <p>
                           Date:{" "}
-                          {new Date(watch.createdDate).toLocaleDateString(
+                          {new Date(book.createdDate).toLocaleDateString(
                             "en-US",
                             { year: "numeric", month: "long", day: "numeric" }
                           )}
                         </p>
-                        <p>Price: {watch.price?.toLocaleString()} đ</p>
+                        <p>Price: {book.price?.toLocaleString()} đ</p>
                         <Tag
                           color={selectedSection === "sold" ? "red" : "green"}
                         >
@@ -184,7 +183,7 @@ const MyPost = () => {
             borderRadius: borderRadiusLG,
           }}
         >
-          {renderWatches()}
+          {renderBooks()}
         </Content>
       </Layout>
     </Layout>

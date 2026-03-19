@@ -95,23 +95,28 @@ const ItemList = () => {
               }}
               onClick={() => handleItemClick(item.id)}
               cover={
-                <div style={{ height: "240px", overflow: "hidden", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" }}>
+                <div style={{ height: "320px", overflow: "hidden", background: "#f0f2f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <img
                     alt={item.name}
                     src={item.imageUrl[0]}
-                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", transition: "transform 0.5s ease" }}
+                    style={{ height: "100%", width: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
                     className="card-hover-image"
                   />
                 </div>
               }
             >
-              <div style={{ padding: "0 4px" }}>
-                <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>
+              <div style={{ padding: "16px 12px" }}>
+                <Text type="secondary" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px", color: "#1890ff" }}>
                   {item.category}
                 </Text>
-                <Title level={5} style={{ margin: "4px 0 6px", height: "48px", overflow: "hidden" }}>
+                <Title level={5} style={{ margin: "8px 0 4px", fontSize: "16px", fontWeight: "600", height: "44px", overflow: "hidden", lineHeight: "1.4" }}>
                   {item.name}
                 </Title>
+                <div style={{ marginBottom: "8px" }}>
+                  <Text type="secondary" style={{ fontSize: "13px", fontStyle: "italic", color: "#555" }}>
+                    by {item.author || "Unknown Author"}
+                  </Text>
+                </div>
                 {item.description && (
                   <Text
                     type="secondary"
@@ -129,11 +134,11 @@ const ItemList = () => {
                     {item.description}
                   </Text>
                 )}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Text strong style={{ color: "#c0392b", fontSize: "1.1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px" }}>
+                  <Text strong style={{ color: "#d32f2f", fontSize: "1.2rem", fontWeight: "700" }}>
                     {item.price?.toLocaleString()} đ
                   </Text>
-                  <Text type="secondary" style={{ fontSize: "12px" }}>
+                  <Text type="secondary" style={{ fontSize: "11px", background: "#f0f2f5", padding: "2px 8px", borderRadius: "10px" }}>
                     {getTimeSincePost(item?.createdDate)}
                   </Text>
                 </div>

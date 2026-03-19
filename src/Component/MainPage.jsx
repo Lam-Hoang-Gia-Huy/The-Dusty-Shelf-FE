@@ -24,7 +24,7 @@ const MainPage = () => {
       <div style={{ marginBottom: "40px", borderRadius: "20px", overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
         <Banner />
       </div>
-      
+
       <div
         style={{
           padding: "40px",
@@ -37,10 +37,10 @@ const MainPage = () => {
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <h1 style={{ fontSize: "3rem", fontWeight: "800", color: "#2c3e50", marginBottom: "10px" }}>Discover Excellence</h1>
-          <p style={{ fontSize: "1.2rem", color: "#7f8c8d" }}>Curated selection of premium watches for the modern connoisseur</p>
+          <h1 style={{ fontSize: "3.5rem", fontWeight: "800", color: "#2c3e50", marginBottom: "12px", letterSpacing: "-1px" }}>Dustshelf</h1>
+          <p style={{ fontSize: "1.4rem", color: "#546e7a", fontWeight: "300", fontStyle: "italic" }}>Where rare gems find a new home among forgotten pages</p>
         </div>
-        
+
         <ProductTypeList />
         <Divider style={{ margin: "40px 0" }} />
         <ItemList />

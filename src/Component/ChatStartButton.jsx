@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import axiosInstance from "./Config/axiosConfig";
 import { Button, message } from "antd";
 import useAuth from "./Hooks/useAuth";
 
@@ -10,18 +11,12 @@ const ChatStartButton = ({ productId, userId, staffId }) => {
 
   const startChatSession = async () => {
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/chat/start`,
+      const response = await axiosInstance.post(
+        `/api/v1/chat/start`,
         {
           productId,
           userId,
           staffId,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.accessToken}`,
-          },
         }
       );
       navigate(`/chat`);

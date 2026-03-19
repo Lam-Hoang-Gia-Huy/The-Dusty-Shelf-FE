@@ -19,7 +19,7 @@ import {
   faTicket,
   faTag,
 } from "@fortawesome/free-solid-svg-icons";
-import Logo from "../Image/avatar-(ProfilePictureMaker.com).png";
+import Logo from "../Image/pngtree-library-icon-with-a-window-and-books-vector-png-image_6821977.png";
 
 const { Header } = Layout;
 const { Search } = Input;
@@ -60,7 +60,7 @@ const HeaderBar = () => {
       }}
     >
       <Col span={2}>
-        <Image src={Logo} height={50} />
+        <Image src={Logo} height={65} />
       </Col>
       <Col span={13}>
         <Menu
@@ -70,10 +70,12 @@ const HeaderBar = () => {
           onClick={handleClick}
           style={{ flex: 1, minWidth: 0 }}
         >
-          <Menu.Item key="home">
-            <FontAwesomeIcon size="lg" icon={faHome} />
-            Home
-          </Menu.Item>
+          {auth?.role === "USER" || !auth ? (
+            <Menu.Item key="home">
+              <FontAwesomeIcon size="lg" icon={faHome} />
+              Home
+            </Menu.Item>
+          ) : null}
 
           {auth?.role === "ADMIN" && (
             <>
@@ -88,8 +90,8 @@ const HeaderBar = () => {
                 <FontAwesomeIcon size="lg" icon={faUserAlt} />
                 Revenue
               </Menu.Item>
-              <Menu.Item key="upload">
-                <FontAwesomeIcon size="lg" icon={faUpload} /> Upload Product
+              <Menu.Item key="product-management">
+                <FontAwesomeIcon size="lg" icon={faUpload} /> Product Management
               </Menu.Item>
 
               <Menu.Item key="vouchers">
@@ -116,6 +118,9 @@ const HeaderBar = () => {
             <>
               <Menu.Item key="store-orders">
                 <FontAwesomeIcon size="lg" icon={faFolder} /> Store Orders{" "}
+              </Menu.Item>
+              <Menu.Item key="product-management">
+                <FontAwesomeIcon size="lg" icon={faUpload} /> Product Management
               </Menu.Item>
               <Menu.Item key="vouchers">
                 <FontAwesomeIcon size="lg" icon={faTicket} /> Vouchers
@@ -152,7 +157,7 @@ const HeaderBar = () => {
         </Menu>
       </Col>
       <Col span={9} style={{ display: "flex", alignItems: "center" }}>
-        {auth?.role !== "STAFF" && (
+        {(auth?.role === "USER" || !auth) && (
           <Search
             placeholder="Search products"
             onSearch={handleSearch}

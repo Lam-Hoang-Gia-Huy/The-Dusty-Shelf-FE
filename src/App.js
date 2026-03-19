@@ -26,11 +26,22 @@ import UpdateProduct from "./Component/UpdateProduct";
 import AllOrders from "./Component/AllOrders";
 import OrderDetailForStaff from "./Component/OrderDetailForStaff";
 import CategoryManagement from "./Component/CategoryManagement";
+import ProductManagement from "./Component/ProductManagement";
+import useAuth from "./Component/Hooks/useAuth";
+import { Navigate } from "react-router-dom";
+const HomeRedirect = () => {
+  const { auth } = useAuth();
+  if (auth && (auth.role === "ADMIN" || auth.role === "STAFF")) {
+    return <Navigate to="/product-management" replace />;
+  }
+  return <MainPage />;
+};
+
 const App = () => {
   return (
     <Routes>
       <Route path="/" element={<LayoutCom />}>
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/filter" element={<ProductFilter />} />
         <Route path="/login" element={<LoginPage />} />
@@ -59,6 +70,7 @@ const App = () => {
           <Route path="/vouchers" element={<VoucherManagement />} />
           <Route path="/store-orders" element={<AllOrders />} />
           <Route path="/categories" element={<CategoryManagement />} />
+          <Route path="/product-management" element={<ProductManagement />} />
           <Route
             path="/store-orders-items/:orderId"
             element={<OrderDetailForStaff />}

@@ -35,6 +35,7 @@ const ProductFilter = () => {
   const [filters, setFilters] = useState({
     name: "",
     category: "",
+    author: "",
     minPrice: 0,
     maxPrice: 3000000,
   });
@@ -59,10 +60,11 @@ const ProductFilter = () => {
   const handleSearch = async (page = 1, size = 12, overrideFilters = null) => {
     setLoading(true);
     try {
-      const { name, category, minPrice, maxPrice } = overrideFilters || filters;
+      const { name, author, category, minPrice, maxPrice } = overrideFilters || filters;
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/product/search`, {
         params: {
           name,
+          author,
           category: category === "All" || !category ? "" : category,
           minPrice,
           maxPrice,
@@ -115,7 +117,7 @@ const ProductFilter = () => {
               <div>
                 <Text strong>Search by Name</Text>
                 <Input
-                  placeholder="Watch name..."
+                  placeholder="Book name..."
                   prefix={<SearchOutlined />}
                   value={filters.name}
                   onChange={(e) => handleFilterChange("name", e.target.value)}
@@ -137,6 +139,17 @@ const ProductFilter = () => {
                     <Option key={cat.id} value={cat.name}>{cat.name}</Option>
                   ))}
                 </Select>
+              </div>
+
+              <div>
+                <Text strong>Search by Author</Text>
+                <Input
+                  placeholder="Author name..."
+                  prefix={<SearchOutlined />}
+                  value={filters.author}
+                  onChange={(e) => handleFilterChange("author", e.target.value)}
+                  style={{ marginTop: "8px", borderRadius: "8px" }}
+                />
               </div>
 
               <div>
@@ -211,7 +224,10 @@ const ProductFilter = () => {
                       }
                     >
                       <Text type="secondary" style={{ fontSize: "12px", textTransform: "uppercase" }}>{item.category}</Text>
-                      <Title level={5} style={{ margin: "4px 0 12px", height: "48px", overflow: "hidden" }}>{item.name}</Title>
+                      <Title level={5} style={{ margin: "4px 0 2px", height: "48px", overflow: "hidden" }}>{item.name}</Title>
+                      <div style={{ marginBottom: "8px" }}>
+                        <Text type="secondary" style={{ fontSize: "12px", fontStyle: "italic" }}>by {item.author || "Unknown"}</Text>
+                      </div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Text strong style={{ color: "#c0392b", fontSize: "1.1rem" }}>{item.price?.toLocaleString()} đ</Text>
                         <Text type="secondary" style={{ fontSize: "12px" }}>{getTimeSincePost(item.createdDate)}</Text>
@@ -241,7 +257,7 @@ const ProductFilter = () => {
             }}>
               <Empty description={<Text style={{ fontSize: "1.2rem" }}>No products match your filters</Text>} />
               <Button style={{ marginTop: "20px" }} onClick={() => {
-                const defaults = { name: "", category: "", minPrice: 0, maxPrice: 3000000 };
+                const defaults = { name: "", author: "", category: "", minPrice: 0, maxPrice: 3000000 };
                 setFilters(defaults);
                 handleSearch(1, pageSize, defaults);
               }}>Reset Filters</Button>

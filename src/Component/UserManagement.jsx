@@ -4,10 +4,13 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "./Hooks/useAuth";
 import { Table, Button, Space, Tag, Popconfirm, message, Modal, Form, Input } from "antd";
 import { Content } from "antd/es/layout/layout";
+import { SearchOutlined } from "@ant-design/icons";
 
 const UserManagement = () => {
   const { auth } = useAuth();
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -15,6 +18,14 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const filtered = users.filter(user =>
+      (user.name && user.name.toLowerCase().includes(searchText.toLowerCase())) ||
+      (user.email && user.email.toLowerCase().includes(searchText.toLowerCase()))
+    );
+    setFilteredUsers(filtered);
+  }, [users, searchText]);
 
   const fetchUsers = async () => {
     const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/v1/user`, {
@@ -25,6 +36,7 @@ const UserManagement = () => {
     // Filter out ADMIN users to prevent accidental management and fulfill user request
     const regularUsers = response.data.filter(user => user.role !== "ADMIN");
     setUsers(regularUsers);
+    setFilteredUsers(regularUsers);
   };
 
   const handleCreateStaff = async (values) => {
@@ -174,12 +186,21 @@ const UserManagement = () => {
       <div style={{ marginTop: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h1>User Management</h1>
-          <Button type="primary" onClick={() => setIsModalVisible(true)}>
-            Create Staff
-          </Button>
+          <Space>
+            <Input
+              placeholder="Search name or email"
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              style={{ width: 250 }}
+            />
+            <Button type="primary" onClick={() => setIsModalVisible(true)}>
+              Create Staff
+            </Button>
+          </Space>
         </div>
         <Table
-          dataSource={users}
+          dataSource={filteredUsers}
           columns={columns}
           pagination={{ pageSize: 10 }}
           rowKey={(record) => record.id}

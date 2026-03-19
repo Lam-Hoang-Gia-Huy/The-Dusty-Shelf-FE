@@ -158,6 +158,18 @@ const RegisterPost = () => {
                 <Input placeholder="Enter name here" />
               </Form.Item>
               <Form.Item
+                name="author"
+                label="Author"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter the author name",
+                  },
+                ]}
+              >
+                <Input placeholder="Enter author name here" />
+              </Form.Item>
+              <Form.Item
                 name="categoryId"
                 label="Category"
                 rules={[

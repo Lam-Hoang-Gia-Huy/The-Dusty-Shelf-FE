@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, message, Card, Typography, Space } from "antd";
+import { Table, Button, message, Card, Typography, Space, Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
@@ -9,6 +10,8 @@ const { Title } = Typography;
 
 const AllOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
   const { auth } = useAuth();
 
@@ -34,6 +37,7 @@ const AllOrders = () => {
           }
         );
         setOrders(response.data);
+        setFilteredOrders(response.data);
       } catch (error) {
         console.error("Failed to fetch orders", error);
         message.error("Failed to fetch orders");
@@ -44,6 +48,14 @@ const AllOrders = () => {
 
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    const filtered = orders.filter(order =>
+      order.id.toString().includes(searchText) ||
+      (order.userName && order.userName.toLowerCase().includes(searchText.toLowerCase()))
+    );
+    setFilteredOrders(filtered);
+  }, [orders, searchText]);
 
   const columns = [
     {
@@ -86,12 +98,21 @@ const AllOrders = () => {
   return (
     <Card style={{ margin: "20px" }}>
       <Space direction="vertical" style={{ width: "100%" }}>
-        <Title level={3} className="formTitle">
-          Store Orders
-        </Title>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Title level={3} style={{ margin: 0 }}>
+            Store Orders
+          </Title>
+          <Input
+            placeholder="Search Order ID or Buyer"
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+            style={{ width: 250 }}
+          />
+        </div>
         <Table
           columns={columns}
-          dataSource={orders}
+          dataSource={filteredOrders}
           loading={loading}
           rowKey="id"
           pagination={{ pageSize: 5 }}

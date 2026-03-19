@@ -203,6 +203,9 @@ const Cart = () => {
                       <Text strong style={{ fontSize: 15, display: "block" }}>
                         {item.product.name}
                       </Text>
+                      <Text type="secondary" style={{ fontSize: 12, display: "block", fontStyle: "italic" }}>
+                        by {item.product.author || "Unknown"}
+                      </Text>
                       <Text type="secondary" style={{ fontSize: 12 }}>
                         {item.product.category}
                       </Text>

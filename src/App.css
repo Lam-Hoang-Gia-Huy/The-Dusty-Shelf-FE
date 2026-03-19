@@ -20,7 +20,7 @@
   color: red;
   background-color: rgb(229, 243, 243);
 }
-.watch-description {
+.book-description {
   margin-top: 20px;
   padding: 5px 10px;
   border-radius: 8px;
@@ -28,13 +28,13 @@
   order: var(--c189eou8-0);
   position: relative;
 }
-.watch-description .appraisal {
+.book-description .appraisal {
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 12px;
   background-color: #f4f4f4;
 }
-.watch-description .appraisal .row {
+.book-description .appraisal .row {
   margin-bottom: 20px;
   border-bottom: 1px solid #e0e0e0;
 }
