@@ -10,8 +10,14 @@ import {
 } from '@chatscope/chat-ui-kit-react';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import { chatWithAi } from '../Service/AiChatService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import useAuth from './Hooks/useAuth';
+import './AiChatBox.css';
+import MiniProductCard from './MiniProductCard';
 
 const AiChatBox = () => {
+    const { auth } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
@@ -20,6 +26,7 @@ const AiChatBox = () => {
             direction: "incoming"
         }
     ]);
+    const [sessionId, setSessionId] = useState(() => localStorage.getItem('ai_chat_session_id') || "");
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef(null);
 
@@ -31,7 +38,7 @@ const AiChatBox = () => {
         if (isOpen) {
             scrollToBottom();
         }
-    }, [messages, isOpen]);
+    }, [messages, isOpen, isTyping]);
 
     const handleSend = async (message) => {
         const newMessage = {
@@ -45,7 +52,11 @@ const AiChatBox = () => {
         setIsTyping(true);
 
         try {
-            const response = await chatWithAi(message);
+            const response = await chatWithAi(message, sessionId, auth?.id);
+            if (response.sessionId && response.sessionId !== sessionId) {
+                setSessionId(response.sessionId);
+                localStorage.setItem('ai_chat_session_id', response.sessionId);
+            }
             setMessages([
                 ...newMessages,
                 {
@@ -74,14 +85,14 @@ const AiChatBox = () => {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    style={styles.chatButton}
+                    className="ai-chat-fab"
                 >
-                    💬 Chat với AI
+                    <span className="ai-chat-fab-icon">🤖</span>
                 </button>
             )}
 
             {isOpen && (
-                <div style={styles.chatBoxContainer}>
+                <div style={styles.chatBoxContainer} className="ai-chat-window slide-up">
                     <MainContainer>
                         <ChatContainer>
                             <ConversationHeader>
@@ -101,7 +112,33 @@ const AiChatBox = () => {
                                 typingIndicator={isTyping ? <TypingIndicator content="AI đang gõ..." /> : null}
                             >
                                 {messages.map((message, i) => (
-                                    <Message key={i} model={message} />
+                                    <Message key={i} model={message}>
+                                        <Message.CustomContent>
+                                            {message.sender === "AI" ? (
+                                                <div className="ai-markdown-content">
+                                                    {message.message.split(/(\[BOOK_CARD:[\s\S]*?\])/).map((part, pIdx) => {
+                                                        if (part.startsWith('[BOOK_CARD:') && part.endsWith(']')) {
+                                                            try {
+                                                                const jsonStr = part.substring(11, part.length - 1).trim();
+                                                                const book = JSON.parse(jsonStr);
+                                                                return <MiniProductCard key={pIdx} book={book} />;
+                                                            } catch (e) {
+                                                                console.error("Error parsing book card:", e, part);
+                                                                return <span key={pIdx}>[Lỗi thông tin sách]</span>;
+                                                            }
+                                                        }
+                                                        return (
+                                                            <ReactMarkdown key={pIdx} remarkPlugins={[remarkGfm]}>
+                                                                {part}
+                                                            </ReactMarkdown>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <span>{message.message}</span>
+                                            )}
+                                        </Message.CustomContent>
+                                    </Message>
                                 ))}
                                 <div ref={messagesEndRef} />
                             </MessageList>
