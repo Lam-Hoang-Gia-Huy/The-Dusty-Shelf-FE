@@ -28,7 +28,12 @@ const MiniProductCard = ({ book }) => {
             </div>
             <div className="mini-product-card-info">
                 <h4 className="mini-product-card-title">{book.name}</h4>
-                <p className="mini-product-card-price">{formattedPrice}</p>
+                <div className="mini-product-card-details">
+                    <p className="mini-product-card-price">{formattedPrice}</p>
+                    {book.quantity > 0 && (
+                        <span className="mini-product-card-quantity">x{book.quantity}</span>
+                    )}
+                </div>
                 <button 
                     className="mini-product-card-btn" 
                     onClick={handleViewDetail}

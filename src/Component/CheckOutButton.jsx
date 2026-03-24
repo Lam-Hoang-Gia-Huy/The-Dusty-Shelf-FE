@@ -3,12 +3,14 @@ import { Button, message } from "antd";
 import axios from "axios";
 import useAuth from "./Hooks/useAuth";
 
-const CheckoutButton = ({ totalPrice, voucherCode }) => {
+const CheckoutButton = ({ totalPrice, voucherCode, disabled }) => {
   const { auth } = useAuth();
+  const [loading, setLoading] = React.useState(false);
   const amount = totalPrice;
   const orderInfo = `Payment for order at My Shop`;
 
   const handleCheckout = async () => {
+    setLoading(true);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/v1/payment/create-payment-url`,
@@ -35,11 +37,21 @@ const CheckoutButton = ({ totalPrice, voucherCode }) => {
     } catch (error) {
       console.error("Error during checkout", error);
       message.error("Checkout failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Button type="primary" onClick={handleCheckout}>
+    <Button
+      type="primary"
+      onClick={handleCheckout}
+      block
+      size="large"
+      disabled={disabled || loading}
+      loading={loading}
+      style={{ borderRadius: 8, height: 50, fontSize: 16, fontWeight: 600 }}
+    >
       Checkout
     </Button>
   );

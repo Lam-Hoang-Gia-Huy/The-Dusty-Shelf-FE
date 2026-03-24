@@ -12,6 +12,9 @@ import {
   Divider,
   Tag,
   Spin,
+  Modal,
+  List,
+  Input,
 } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -33,6 +36,8 @@ const Cart = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [vouchers, setVouchers] = useState([]);
   const [updatingItems, setUpdatingItems] = useState({});
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const { auth } = useAuth();
 
@@ -47,6 +52,12 @@ const Cart = () => {
       console.error("Error fetching cart data", error);
     }
   }, [auth.id, auth.accessToken]);
+
+  useEffect(() => {
+    if (cart.voucherCode !== undefined) {
+      setVoucherCode(cart.voucherCode || "");
+    }
+  }, [cart.voucherCode]);
 
   useEffect(() => {
     const init = async () => {
@@ -107,6 +118,7 @@ const Cart = () => {
       message.warning("Please select a voucher.");
       return;
     }
+    setApplyingVoucher(true);
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_API_BASE_URL}/api/v1/cart/${auth.id}/apply-voucher`,
@@ -125,6 +137,8 @@ const Cart = () => {
       }
     } catch (error) {
       message.error("Invalid voucher code.");
+    } finally {
+      setApplyingVoucher(false);
     }
   };
 
@@ -135,6 +149,7 @@ const Cart = () => {
   );
   const discountAmount = Math.max(0, originalTotal - cart.totalPrice);
   const hasDiscount = discountAmount > 0;
+  const isUpdating = applyingVoucher || Object.values(updatingItems).some((v) => v);
 
   if (loading) {
     return (
@@ -275,31 +290,79 @@ const Cart = () => {
                   <FontAwesomeIcon icon={faTicket} style={{ marginRight: 6 }} />
                   Apply Voucher
                 </Text>
-                <Select
-                  placeholder="Select a voucher"
-                  style={{ width: "100%", marginBottom: 8 }}
-                  onChange={setVoucherCode}
-                  allowClear
+                <div 
+                  onClick={() => !isUpdating && setIsModalVisible(true)}
+                  style={{ 
+                    border: '1px solid #d9d9d9', 
+                    borderRadius: 6, 
+                    padding: '8px 12px', 
+                    marginBottom: 8,
+                    cursor: isUpdating ? 'not-allowed' : 'pointer',
+                    background: isUpdating ? '#f5f5f5' : '#fff',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    transition: 'all 0.3s'
+                  }}
                 >
-                  {vouchers.map((voucher) => (
-                    <Option key={voucher.code} value={voucher.code}>
-                      <div>
-                        <Text strong>{voucher.code}</Text>
-                        <Text type="secondary" style={{ fontSize: 11, display: "block" }}>
-                          -{formatCurrency(voucher.discountValue)} | Min: {formatCurrency(voucher.minimumPurchase)} | Left: {voucher.maxUsage - voucher.currentUsage}
-                        </Text>
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
+                  <Text type={voucherCode ? "body" : "secondary"}>
+                    {voucherCode || "Select a voucher"}
+                  </Text>
+                  <FontAwesomeIcon icon={faTicket} style={{ color: '#bfbfbf' }} />
+                </div>
+                
                 <Button
-                  type="default"
+                  type="primary"
                   block
                   onClick={handleApplyVoucher}
-                  style={{ borderRadius: 6 }}
+                  style={{ borderRadius: 6, marginBottom: 16 }}
+                  loading={applyingVoucher}
+                  disabled={isUpdating || !voucherCode}
                 >
                   Apply
                 </Button>
+
+                <Modal
+                  title="Select a Voucher"
+                  open={isModalVisible}
+                  onCancel={() => setIsModalVisible(false)}
+                  footer={null}
+                  width={600}
+                >
+                  <List
+                    itemLayout="horizontal"
+                    dataSource={vouchers}
+                    pagination={{ pageSize: 5 }}
+                    renderItem={(voucher) => (
+                      <List.Item
+                        actions={[
+                          <Button 
+                            type={voucherCode === voucher.code ? "primary" : "default"}
+                            onClick={() => {
+                              setVoucherCode(voucher.code);
+                              setIsModalVisible(false);
+                            }}
+                          >
+                            {voucherCode === voucher.code ? "Selected" : "Select"}
+                          </Button>
+                        ]}
+                      >
+                        <List.Item.Meta
+                          title={<Text strong>{voucher.code}</Text>}
+                          description={
+                            <div>
+                              <Text type="secondary" style={{ fontSize: 13, display: 'block' }}>
+                                -{formatCurrency(voucher.discountValue)} | 
+                                Min Purchase: {formatCurrency(voucher.minimumPurchase)}
+                              </Text>
+                              <Tag color="blue">{voucher.maxUsage - voucher.currentUsage} left</Tag>
+                            </div>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                </Modal>
               </div>
 
               <Divider />
@@ -335,6 +398,7 @@ const Cart = () => {
               <CheckoutButton
                 totalPrice={cart.totalPrice}
                 voucherCode={voucherCode}
+                disabled={isUpdating}
               />
             </div>
           </Col>

@@ -57,10 +57,13 @@ const AiChatBox = () => {
                 setSessionId(response.sessionId);
                 localStorage.setItem('ai_chat_session_id', response.sessionId);
             }
+            // Normalize excessive newlines (3 or more) to just 2
+            const normalizedResponse = response.response.replace(/\n{3,}/g, '\n\n').trim();
+            
             setMessages([
                 ...newMessages,
                 {
-                    message: response.response,
+                    message: normalizedResponse,
                     sender: "AI",
                     direction: "incoming"
                 }
@@ -116,23 +119,28 @@ const AiChatBox = () => {
                                         <Message.CustomContent>
                                             {message.sender === "AI" ? (
                                                 <div className="ai-markdown-content">
-                                                    {message.message.split(/(\[BOOK_CARD:[\s\S]*?\])/).map((part, pIdx) => {
-                                                        if (part.startsWith('[BOOK_CARD:') && part.endsWith(']')) {
-                                                            try {
-                                                                const jsonStr = part.substring(11, part.length - 1).trim();
-                                                                const book = JSON.parse(jsonStr);
-                                                                return <MiniProductCard key={pIdx} book={book} />;
-                                                            } catch (e) {
-                                                                console.error("Error parsing book card:", e, part);
-                                                                return <span key={pIdx}>[Lỗi thông tin sách]</span>;
+                                                    {message.message
+                                                        .replace(/\n{3,}/g, '\n\n') // Collapse extreme newlines
+                                                        .split(/(\[BOOK_CARD:[\s\S]*?\])/)
+                                                        .map(p => p.trim())
+                                                        .filter(p => p !== "")
+                                                        .map((part, pIdx) => {
+                                                            if (part.startsWith('[BOOK_CARD:') && part.endsWith(']')) {
+                                                                try {
+                                                                    const jsonStr = part.substring(11, part.length - 1).trim();
+                                                                    const book = JSON.parse(jsonStr);
+                                                                    return <MiniProductCard key={pIdx} book={book} />;
+                                                                } catch (e) {
+                                                                    console.error("Error parsing book card:", e, part);
+                                                                    return <span key={pIdx}>[Lỗi thông tin sách]</span>;
+                                                                }
                                                             }
-                                                        }
-                                                        return (
-                                                            <ReactMarkdown key={pIdx} remarkPlugins={[remarkGfm]}>
-                                                                {part}
-                                                            </ReactMarkdown>
-                                                        );
-                                                    })}
+                                                            return (
+                                                                <ReactMarkdown key={pIdx} remarkPlugins={[remarkGfm]}>
+                                                                    {part}
+                                                                </ReactMarkdown>
+                                                            );
+                                                        })}
                                                 </div>
                                             ) : (
                                                 <span>{message.message}</span>
